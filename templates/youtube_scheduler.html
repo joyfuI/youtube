@@ -1,0 +1,229 @@
+{% extends "base.html" %}
+{% block content %}
+
+    <div>
+        {{ macros.m_row_start() }}
+        {{ macros.m_button('add_btn', '스케줄 추가') }}
+        {{ macros.m_row_end() }}
+
+        {{ macros.m_hr_head_top() }}
+        {{ macros.m_row_start('0') }}
+        {{ macros.m_col(4, macros.m_strong('제목 / 업로더')) }}
+        {{ macros.m_col(4, macros.m_strong('설정')) }}
+        {{ macros.m_col(4, macros.m_strong('상태')) }}
+        {{ macros.m_row_end() }}
+        {{ macros.m_hr_head_bottom() }}
+        <div id="list"></div>
+    </div>
+
+    <!-- Modal -->
+    <div id="schedule_modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="scheduleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">스케줄 추가</h4>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="modal_form">
+                        <input id="db_id" name="db_id" type="hidden" value="">
+                        {{ macros.setting_input_text('url', 'URL', placeholder='https:// 주소', desc='유튜브 채널이나 플레이리스트 주소') }}
+                        {{ macros.setting_input_text('filename', '파일명', value=arg['filename'], desc='템플릿 규칙은 https://github.com/ytdl-org/youtube-dl/blob/master/README.md#output-template 참고') }}
+                        {{ macros.setting_select('format', '동영상 포맷', arg['preset_list'], col='4') }}
+                        {{ macros.setting_checkbox('convert_mp3', 'mp3 변환', value='False') }}
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button id="schedule_modal_save_btn" class="btn btn-primary" type="button">저장</button>
+                    <button class="btn btn-default" type="button" data-dismiss="modal">닫기</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        "use strict";
+        const package_name = '{{ arg["package_name"] }}';
+
+        let current_data;
+
+        $(function () {
+            // 리스트 로딩
+            $.ajax({
+                url: `/${package_name}/ajax/list_scheduler`,
+                type: 'POST',
+                cache: false,
+                data: {},
+                dataType: 'json'
+            }).done(function (data) {
+                make_list(data);
+            });
+
+            // 스케줄 추가
+            $('#add_btn').click(function () {
+                $('#db_id').val('');
+                $('#url').prop('disabled', false);
+                $('#modal_form')[0].reset();
+                $('#convert_mp3').bootstrapToggle('off');
+                $("#schedule_modal").modal();
+                return false;
+            });
+
+            $('#list').on('click', '#edit_btn', function () {
+                // 스케줄 수정
+                let index = $(this).data('id');
+                $('#db_id').val(index);
+                $('#url').val(current_data[index].url).prop('disabled', true);
+                $('#filename').val(current_data[index].filename);
+                $('#format').val(current_data[index].format);
+                $('#convert_mp3').bootstrapToggle((current_data[index].convert_mp3) ? "on" : "off");
+                $("#schedule_modal").modal();
+                return false;
+            }).on('click', '#del_btn', function () {
+                // 스케줄 삭제
+                $('#confirm_title').text('스케줄 삭제');
+                $('#confirm_body').text('해당 스케줄을 삭제하시겠습니까?');
+                $('#confirm_button').off('click').click($(this).data('id'), del_scheduler);
+                $("#confirm_modal").modal();
+                return false;
+            }).on('click', '#archive_btn', function () {
+                // Archive 삭제
+                $('#confirm_title').text('Archive 삭제');
+                $('#confirm_body').html('Archive 파일을 삭제하시겠습니까?<br>Archive 파일은 중복 다운로드를 막기 위해 이미 다운로드한 동영상 정보를 기록한 파일입니다. 삭제 시 플레이리스트 전체를 처음부터 다운로드합니다.');
+                $('#confirm_button').off('click').click($(this).data('id'), del_archive);
+                $("#confirm_modal").modal();
+                return false;
+            });
+
+            // mp3 변환
+            $('#convert_mp3').change(function () {
+                if ($(this).prop('checked')) {
+                    $('#format').val('bestaudio/best');
+                }
+            });
+
+            // 스케줄 저장
+            $('#schedule_modal_save_btn').click(function () {
+                $("#schedule_modal").modal('hide');
+                let url = $('#url').val();
+                if (url.startsWith('http') === false) {
+                    $.notify('<strong>URL을 입력하세요.</strong>', {
+                        type: 'warning'
+                    });
+                    return false;
+                }
+
+                let form_data = get_formdata('#modal_form');
+                $.ajax({
+                    url: `/${package_name}/ajax/add_scheduler`,
+                    type: 'POST',
+                    cache: false,
+                    data: form_data,
+                    dataType: 'json'
+                }).done(function (data) {
+                    if (data === null) {
+                        $.notify('<strong>플레이리스트가 아닙니다.</strong>', {
+                            type: 'warning'
+                        });
+                        return;
+                    }
+                    make_list(data);
+                    $.notify('<strong>스케줄을 저장하였습니다.</strong>', {
+                        type: 'success'
+                    });
+                }).fail(function () {
+                    $.notify('<strong>실패하였습니다.</strong>', {
+                        type: 'danger'
+                    });
+                });
+                return false;
+            });
+        });
+
+        function make_list(data) {
+            current_data = {};
+            let str = '';
+            for (let i of data) {
+                current_data[i.id] = i;
+                str += make_item(i);
+            }
+            $('#list').html(str);
+        }
+
+        function make_item(data) {
+            let str = m_row_start();
+
+            let tmp = `<strong><a href="${data.url}" target="_blank">${data.title}</a></strong><br><br>`;
+            tmp += `<a href="${data.uploader_url}" target="_blank">${data.uploader}</a>`;
+            str += m_col(4, tmp);
+
+            tmp = m_row_start(0);
+            tmp += m_col2(3, '파일명', 'right');
+            tmp += m_col2(9, data.filename);
+            tmp += m_row_end();
+            tmp += m_row_start(0);
+            tmp += m_col2(3, '동영상 포맷', 'right');
+            tmp += m_col2(9, data.format);
+            tmp += m_row_end();
+            tmp += m_row_start(0);
+            tmp += m_col2(3, 'mp3로 변환', 'right');
+            tmp += m_col2(9, (data.convert_mp3) ? '사용' : '사용안함');
+            tmp += m_row_end();
+            str += m_col(4, tmp);
+
+            tmp = `동영상 개수: ${data.count}<br>`;
+            tmp += `마지막 실행: ${data.last_time}<br><br>`;
+            let tmp2 = m_button('edit_btn', '스케줄 수정', [{'key': 'id', 'value': data.id}]);
+            tmp2 += m_button('del_btn', '스케줄 삭제', [{'key': 'id', 'value': data.id}]);
+            tmp2 += m_button('archive_btn', 'Archive 삭제', [{'key': 'id', 'value': data.id}]);
+            tmp += m_button_group(tmp2);
+            str += m_col(4, tmp);
+
+            str += m_row_end();
+            str += m_hr_black();
+            return str;
+        }
+
+        // 스케줄 삭제
+        function del_scheduler(e) {
+            $.ajax({
+                url: `/${package_name}/ajax/del_scheduler`,
+                type: "POST",
+                cache: false,
+                data: {id: e.data},
+                dataType: "json"
+            }).done(function (data) {
+                make_list(data);
+                $.notify('<strong>삭제하였습니다.</strong>', {
+                    type: 'success'
+                });
+            }).fail(function () {
+                $.notify('<strong>실패하였습니다.</strong>', {
+                    type: 'danger'
+                });
+            });
+        }
+
+        // Archive 삭제
+        function del_archive(e) {
+            $.ajax({
+                url: `/${package_name}/ajax/del_archive`,
+                type: "POST",
+                cache: false,
+                data: {id: e.data},
+                dataType: "json"
+            }).done(function () {
+                $.notify('<strong>삭제하였습니다.</strong>', {
+                    type: 'success'
+                });
+            }).fail(function () {
+                $.notify('<strong>실패하였습니다.</strong>', {
+                    type: 'danger'
+                });
+            });
+        }
+    </script>
+
+{% endblock %}

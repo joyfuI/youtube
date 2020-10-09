@@ -1,0 +1,328 @@
+{% extends "base.html" %}
+{% block content %}
+
+    <div>
+        {{ macros.setting_input_text_and_buttons('url', 'URL', [['analysis_btn', '분석'], ['go_btn', 'Go']], value=arg['url'], desc='유튜브 동영상 또는 채널, 플레이리스트 주소') }}
+        <div id="detail"></div>
+        <div id="list"></div>
+    </div>
+
+    <!-- Modal -->
+    <div id="youtube_modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="youtubeModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 id="youtube_modal_title" class="modal-title"></h4>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <input id="modal_type" type="hidden" value="0">
+                    {{ macros.setting_input_text('video_id', 'ID', value='') }}
+                    <form id="modal_form">
+                        <input id="db_id" name="db_id" type="hidden" value="">
+                        {{ macros.setting_input_text('filename', '파일명', value=arg['filename'], desc='템플릿 규칙은 https://github.com/ytdl-org/youtube-dl/blob/master/README.md#output-template 참고') }}
+                        {{ macros.setting_select('format', '동영상 포맷', arg['preset_list'], col='4') }}
+                        {{ macros.setting_checkbox('convert_mp3', 'mp3 변환', value='False') }}
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button id="youtube_modal_save_btn" class="btn btn-primary" type="button">추가</button>
+                    <button class="btn btn-secondary" type="button" data-dismiss="modal">닫기</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        "use strict";
+        const package_name = '{{ arg["package_name"] }}';
+
+        const error_code = {
+            0: '성공',
+            1: '필수 요청 변수가 없음',
+            2: '잘못된 동영상 주소',
+            3: '인덱스 범위를 벗어남',
+            4: '키 값이 일치하지 않음',
+            5: '허용되지 않은 값이 있음',
+            10: '실패'
+        };
+        let current_info_dict = null;
+        let download_list = [];
+
+        $(function () {
+            $('#video_id').prop('readonly', true);
+
+            $('#analysis_btn').click(function () {
+                let url = $('#url').val();
+                if (url.startsWith('http') === false) {
+                    $.notify('<strong>URL을 입력하세요.</strong>', {
+                        type: 'warning'
+                    });
+                    return false;
+                }
+
+                $.ajax({
+                    url: `/${package_name}/ajax/analysis`,
+                    type: 'POST',
+                    cache: false,
+                    data: {
+                        url: url
+                    },
+                    dataType: 'json'
+                }).done(function (data) {
+                    if (data.errorCode !== 0) {
+                        $.notify(`<strong>분석 실패</strong><br>${error_code[data.errorCode]}`, {
+                            type: 'warning'
+                        });
+                        return false;
+                    }
+                    current_info_dict = data.info_dict;
+                    let detail = $('#detail');
+                    let list = $('#list');
+                    detail.empty();
+                    list.empty();
+                    if (current_info_dict['_type'] === 'playlist') {
+                        // 플레이리스트, 채널 주소
+                        detail.html(make_info_playlist(current_info_dict));
+                        let str = '';
+                        let index = 0;
+                        for (let i of current_info_dict['entries']) {
+                            str += make_item(i, ++index);
+                        }
+                        list.html(str);
+                        $('input.youtube-list').bootstrapToggle();
+                    } else {
+                        // 동영상 주소
+                        detail.html(make_info(current_info_dict));
+                    }
+                }).fail(function () {
+                    $.notify('<strong>요청 실패</strong>', {
+                        type: 'danger'
+                    });
+                });
+                return false;
+            });
+
+            $('#go_btn').click(function () {
+                let url = $('#url').val();
+                if (url.startsWith('http') === true) {
+                    open(url, '_blank');
+                }
+                return false;
+            });
+
+            $('#detail, #list').on('click', '#download_btn', function () {
+                // 다운로드 추가
+                let data = $(this).data();
+                download_list = [`https://www.youtube.com/watch?v=${data.id}`];
+
+                $('#youtube_modal_title').text('다운로드 추가');
+                $('#modal_type').val(0);
+                $('#video_id').val(data.id);
+                $('#youtube_modal').modal();
+            });
+
+            $('#detail').on('click', '#check_download_btn', function () {
+                // 선택 다운로드 추가
+                download_list = [];
+                let video_id = '';
+                $('input.youtube-list').each(function (index, item) {
+                    if (item.checked) {
+                        let data = item.dataset;
+                        download_list.push(`https://www.youtube.com/watch?v=${data.id}`);
+                        video_id += `${data.id} | `;
+                    }
+                });
+                video_id = video_id.slice(0, -3);
+                if (download_list.length === 0) {
+                    $.notify('<strong>다운로드할 영상을 선택하세요.</strong>', {
+                        type: 'warning'
+                    });
+                } else {
+                    $('#youtube_modal_title').text('선택 다운로드 추가');
+                    $('#modal_type').val(0);
+                    $('#video_id').val(video_id);
+                    $('#youtube_modal').modal();
+                }
+                return false;
+            }).on('click', '#all_check_on_btn', function () {
+                // 전체 선택
+                $('input.youtube-list').bootstrapToggle('on');
+                return false;
+            }).on('click', '#all_check_off_btn', function () {
+                // 전체 해제
+                $('input.youtube-list').bootstrapToggle('off');
+                return false;
+            }).on('click', '#add_scheduler_btn', function () {
+                // 스케줄러에 추가
+                $('#youtube_modal_title').text('스케줄러에 추가');
+                $('#modal_type').val(1);
+                $('#video_id').val(current_info_dict['id']);
+                $("#youtube_modal").modal();
+                return false;
+            });
+
+            // mp3 변환
+            $('#convert_mp3').change(function () {
+                if ($(this).prop('checked')) {
+                    $('#format').val('bestaudio/best');
+                }
+            });
+
+            // 모달 추가 버튼
+            $('#youtube_modal_save_btn').click(function () {
+                let type = parseInt($('#modal_type').val());
+                let form_data = $('#modal_form').serializeObject();
+                if (type === 0) {
+                    // 다운로드 추가
+                    form_data['download'] = download_list;
+                    $.ajax({
+                        url: `/${package_name}/ajax/add_download`,
+                        type: 'POST',
+                        cache: false,
+                        data: form_data,
+                        dataType: 'json'
+                    }).done(function (data) {
+                        $("#youtube_modal").modal('hide');
+                        $.notify(`<strong>${data}개를 큐에 추가하였습니다.</strong>`, {
+                            type: 'success'
+                        });
+                    }).fail(function () {
+                        $("#youtube_modal").modal('hide');
+                        $.notify('<strong>실패하였습니다.</strong>', {
+                            type: 'danger'
+                        });
+                    });
+                } else if (type === 1) {
+                    // 스케줄러 추가
+                    form_data['url'] = 'https://www.youtube.com/playlist?list=' + $('#video_id').val();
+                    $.ajax({
+                        url: `/${package_name}/ajax/add_scheduler`,
+                        type: 'POST',
+                        cache: false,
+                        data: form_data,
+                        dataType: 'json'
+                    }).done(function () {
+                        $("#youtube_modal").modal('hide');
+                        $.notify('<strong>스케줄을 저장하였습니다.</strong>', {
+                            type: 'success'
+                        });
+                    }).fail(function () {
+                        $("#youtube_modal").modal('hide');
+                        $.notify('<strong>실패하였습니다.</strong>', {
+                            type: 'danger'
+                        });
+                    });
+                }
+                return false;
+            });
+        });
+
+        function make_info(data) {
+            let str = m_button('download_btn', '다운로드 추가', [{key: 'id', value: data['id']}]);
+            str += m_hr_black();
+            str += m_row_start(0);
+            // 썸네일
+            str += m_col(3, `<img class="img-fluid" src="${data['thumbnail']}" alt="${data['title']}">`);
+            // 정보
+            let tmp = make_col('제목', `<a href="${data['webpage_url']}" target="_blank">${data['title']}</a>`);
+            tmp += make_col('업로더', `<a href="${data['uploader_url']}" target="_blank">${data['uploader']}</a>`);
+            let date = data['upload_date'];
+            tmp += make_col('날짜/조회수', `${date.substr(0, 4)}. ${date.substr(4, 2)}. ${date.substr(6, 2)}. / ${data['view_count'].toLocaleString()}회`);
+            tmp += make_col('설명', convert_description(data['description']));
+            tmp += make_col('길이/화질', `${convert_duration(data['duration'])} / ${data['width']}x${data['height']}@${data['fps']}`);
+            str += m_col(9, tmp);
+
+            str += m_row_end();
+            str += m_hr_black();
+            return str;
+        }
+
+        function make_info_playlist(data) {
+            let tmp = m_button('check_download_btn', '선택 다운로드 추가');
+            tmp += m_button('all_check_on_btn', '전체 선택');
+            tmp += m_button('all_check_off_btn', '전체 해제');
+            tmp += m_button('add_scheduler_btn', '스케줄러에 추가');
+            let str = m_button_group(tmp);
+            str += m_hr_black();
+            // 정보
+            str += make_col('제목', `<a href="${data['webpage_url']}" target="_blank">${data['title']}</a>`);
+            str += make_col('업로더', `<a href="${data['uploader_url']}" target="_blank">${data['uploader']}</a>`);
+            str += make_col('동영상 수', `${data['entries'].length}개`);
+
+            str += m_hr_black();
+            return str;
+        }
+
+        function make_item(data, index) {
+            let str = m_row_start(0);
+            str += m_col(1, index);
+            str += m_col(2, `<img class="img-fluid" src="https://i.ytimg.com/vi/${data['id']}/hqdefault.jpg" alt="${data['title']}">`);
+            str += m_col(6, `<a href="https://www.youtube.com/watch?v=${data['id']}" target="_blank">${data['title']}</a>`);
+
+            let tmp = '<div class="form-inline">';
+            tmp += `<input class="youtube-list" type="checkbox" data-toggle="toggle" data-on="선 택" data-off="-" data-onstyle="success" data-offstyle="danger" data-size="small" data-id="${data['id']}" data-title="${data['title']}" checked>&nbsp;&nbsp;&nbsp;&nbsp;`;
+            tmp += m_button('download_btn', '다운로드 추가', [{key: 'id', value: data['id']}]);
+            tmp += '</div>';
+            str += m_col(3, tmp, 'right');
+
+            str += m_row_end();
+            str += m_hr(0);
+            return str;
+        }
+
+        function make_col(right, left) {
+            let str = m_row_start(0);
+            str += m_col(3, `<div class="my-1 font-weight-bold">${right}</div>`, 'right');
+            str += m_col(9, `<div class="my-1">${left}</div>`);
+            str += m_row_end();
+            return str;
+        }
+
+        function convert_description(str) {
+            str = str.replace(/#([^\s#]+)/g, '<a href="https://www.youtube.com/results?search_query=%23$1" target="_blank">#$1</a>');
+            str = str.replace(/\n/g, '<br>');
+            return str;
+        }
+
+        function convert_duration(int) {
+            let str = '';
+            let h = Math.floor(int / 3600);
+            let m = Math.floor((int % 3600) / 60);
+            let s = int % 60;
+            if (h !== 0) {
+                str += `${h}:`;
+                str += (m < 10) ? `0${m}` : m;
+            } else {
+                str += m;
+            }
+            str += (s < 10) ? `:0${s}` : `:${s}`;
+            return str;
+        }
+
+        // 플러그인
+        jQuery.fn.serializeObject = function () {
+            let result = {};
+            jQuery.each(this.serializeArray(), function (i, element) {
+                let node = result[element.name];
+                if (typeof node !== 'undefined' && node !== null) {
+                    if (jQuery.isArray(node)) {
+                        node.push(element.value);
+                    } else {
+                        result[element.name] = [node, element.value];
+                    }
+                } else {
+                    result[element.name] = element.value;
+                }
+            });
+            jQuery.each(this.find('input[type=checkbox]'), function (i, element) {
+                result[element.name] = $(element).prop('checked');
+            });
+            return result;
+        };
+    </script>
+
+{% endblock %}

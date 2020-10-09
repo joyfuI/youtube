@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block content %}
+
+    <div>
+        {{ macros.m_button_group([['global_setting_save_btn', '설정 저장']]) }}
+        {{ macros.m_row_start('5') }}
+        {{ macros.m_row_end() }}
+
+        <nav>
+            {{ macros.m_tab_head_start() }}
+            {{ macros.m_tab_head2('normal', '일반', true) }}
+            {{ macros.m_tab_head2('action', '기타', false) }}
+            {{ macros.m_tab_head_end() }}
+        </nav>
+
+        <div class="tab-content" id="nav-tabContent">
+            {{ macros.m_tab_content_start('normal', true) }}
+            {{ macros.setting_global_scheduler_button(arg['scheduler'], arg['is_running']) }}
+            <form id="setting">
+                {{ macros.setting_input_text('interval', '스케줄링 실행 정보', value=arg['interval'], col='3', desc=['Inverval(minute 단위)이나 Cron 설정']) }}
+                {{ macros.setting_checkbox('auto_start', '시작 시 자동실행', value=arg['auto_start'], desc='On: 시작 시 자동으로 스케줄러에 등록됩니다.') }}
+                {{ macros.setting_input_text('save_path', '저장 폴더', value=arg['save_path'], placeholder='저장 폴더 경로', desc='정상적으로 완료된 파일이 이동할 폴더 입니다.') }}
+            </form>
+            {{ macros.m_tab_content_end() }}
+
+            {{ macros.m_tab_content_start('action', false) }}
+            {{ macros.setting_button([['global_one_execute_btn', '1회 실행']], left='1회 실행') }}
+            {{ macros.setting_button([['global_reset_db_btn', '큐 초기화']], left='DB정리') }}
+            {{ macros.m_tab_content_end() }}
+        </div>
+    </div>
+
+    <script>
+        "use strict";
+        const package_name = '{{ arg["package_name"] }}';
+    </script>
+
+{% endblock %}
