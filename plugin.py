@@ -10,7 +10,7 @@ from flask_login import login_required
 
 # sjva 공용
 from framework.logger import get_logger
-from framework import db, scheduler, socketio
+from framework import scheduler, socketio
 
 # 패키지
 package_name = __name__.split('.')[0]
@@ -34,7 +34,7 @@ menu = {
 }
 
 plugin_info = {
-    'version': '0.1.0',
+    'version': '0.2.0',
     'name': 'youtube',
     'category_name': 'vod',
     'developer': 'joyfuI',
@@ -71,12 +71,14 @@ def first_menu(sub):
 
         elif sub == 'request':
             arg['url'] = request.args.get('url', '')
-            arg['filename'] = '%(title)s-%(id)s.%(ext)s'
+            arg['save_path'] = ModelSetting.get('default_save_path')
+            arg['filename'] = ModelSetting.get('default_filename')
             arg['preset_list'] = LogicNormal.get_preset_list()
             return render_template('%s_%s.html' % (package_name, sub), arg=arg)
 
         elif sub == 'scheduler':
-            arg['filename'] = '%(title)s-%(id)s.%(ext)s'
+            arg['save_path'] = ModelSetting.get('default_save_path')
+            arg['filename'] = ModelSetting.get('default_filename')
             arg['preset_list'] = LogicNormal.get_preset_list()
             return render_template('%s_%s.html' % (package_name, sub), arg=arg)
 
@@ -139,7 +141,7 @@ def ajax(sub):
             ret = LogicNormal.del_scheduler(request.form['id'])
             return jsonify(ret)
 
-        elif sub =='del_archive':
+        elif sub == 'del_archive':
             LogicNormal.del_archive(request.form['id'])
             return jsonify([])
     except Exception as e:

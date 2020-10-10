@@ -30,6 +30,7 @@
                     <form id="modal_form">
                         <input id="db_id" name="db_id" type="hidden" value="">
                         {{ macros.setting_input_text('url', 'URL', placeholder='https:// 주소', desc='유튜브 채널이나 플레이리스트 주소') }}
+                        {{ macros.setting_input_text('save_path', '저장 폴더', value=arg['save_path'], placeholder='저장 폴더 경로', desc='템플릿 규칙 사용 불가. 폴더명에 템플릿 규칙을 사용하려면 저장 폴더엔 상위 폴더 경로를 지정하고 파일명에 하위 경로를 추가해주세요.') }}
                         {{ macros.setting_input_text('filename', '파일명', value=arg['filename'], desc='템플릿 규칙은 https://github.com/ytdl-org/youtube-dl/blob/master/README.md#output-template 참고') }}
                         {{ macros.setting_select('format', '동영상 포맷', arg['preset_list'], col='4') }}
                         {{ macros.setting_checkbox('convert_mp3', 'mp3 변환', value='False') }}
@@ -154,14 +155,13 @@
 
         function make_item(data) {
             let str = m_row_start();
-
             let tmp = `<strong><a href="${data.url}" target="_blank">${data.title}</a></strong><br><br>`;
             tmp += `<a href="${data.uploader_url}" target="_blank">${data.uploader}</a>`;
             str += m_col(4, tmp);
 
             tmp = m_row_start(0);
-            tmp += m_col2(3, '파일명', 'right');
-            tmp += m_col2(9, data.filename);
+            tmp += m_col2(3, '저장 경로', 'right');
+            tmp += m_col2(9, data.path);
             tmp += m_row_end();
             tmp += m_row_start(0);
             tmp += m_col2(3, '동영상 포맷', 'right');
@@ -182,7 +182,7 @@
             str += m_col(4, tmp);
 
             str += m_row_end();
-            str += m_hr_black();
+            str += m_hr(0);
             return str;
         }
 

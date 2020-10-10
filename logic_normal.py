@@ -11,7 +11,7 @@ from framework import path_data
 
 # 패키지
 from .plugin import logger, package_name
-from .model import ModelSetting, ModelScheduler
+from .model import ModelScheduler
 from .logic_queue import LogicQueue
 from .api_youtube_dl import APIYoutubeDL
 #########################################################
@@ -26,9 +26,8 @@ class LogicNormal(object):
                 continue
             ModelScheduler.find(i.id).update(len(ret['entries']))
 
-            save_path = ModelSetting.get('save_path')
             archive = os.path.join(path_data, 'db', package_name, '%d.txt' % i.id)
-            ret = APIYoutubeDL.download(package_name, i.key, i.url, i.filename, save_path, i.format, None,
+            ret = APIYoutubeDL.download(package_name, i.key, i.url, i.filename, i.save_path, i.format, None,
                                         'mp3' if i.convert_mp3 else None, None, archive, True)
             if ret['errorCode'] == 0:
                 index = ret['index']
@@ -61,6 +60,7 @@ class LogicNormal(object):
     @staticmethod
     def download(form):
         options = {
+            'save_path': form['save_path'],
             'filename': form['filename'],
             'format': form['format'],
             'convert_mp3': bool(form['convert_mp3']) if str(form['convert_mp3']).lower() != 'false' else False
@@ -74,6 +74,7 @@ class LogicNormal(object):
         ret = []
         for i in ModelScheduler.get_list(True):
             i['last_time'] = i['last_time'].strftime('%m-%d %H:%M:%S')
+            i['path'] = os.path.join(i['save_path'], i['filename'])
             ret.append(i)
         return ret
 
@@ -81,6 +82,7 @@ class LogicNormal(object):
     def add_scheduler(form):
         if form['db_id']:
             data = {
+                'save_path': form['save_path'],
                 'filename': form['filename'],
                 'format': form['format'],
                 'convert_mp3': bool(form['convert_mp3']) if str(form['convert_mp3']).lower() != 'false' else False
@@ -93,9 +95,10 @@ class LogicNormal(object):
             data = {
                 'webpage_url': ret['webpage_url'],
                 'title': ret['title'],
-                'uploader': ret['uploader'],
-                'uploader_url': ret['uploader_url'],
+                'uploader': ret.get('uploader', ''),
+                'uploader_url': ret.get('uploader_url', ''),
                 'count': len(ret['entries']),
+                'save_path': form['save_path'],
                 'filename': form['filename'],
                 'format': form['format'],
                 'convert_mp3': bool(form['convert_mp3']) if str(form['convert_mp3']).lower() != 'false' else False
