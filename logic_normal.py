@@ -93,8 +93,8 @@ class LogicNormal(object):
             data = {
                 'webpage_url': ret['webpage_url'],
                 'title': ret['title'],
-                'uploader': ret['uploader'],
-                'uploader_url': ret['uploader_url'],
+                'uploader': ret.get('uploader', ''),
+                'uploader_url': ret.get('uploader_url', ''),
                 'count': len(ret['entries']),
                 'filename': form['filename'],
                 'format': form['format'],

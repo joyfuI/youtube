@@ -34,7 +34,7 @@ menu = {
 }
 
 plugin_info = {
-    'version': '0.1.0',
+    'version': '0.2.0',
     'name': 'youtube',
     'category_name': 'vod',
     'developer': 'joyfuI',
@@ -139,7 +139,7 @@ def ajax(sub):
             ret = LogicNormal.del_scheduler(request.form['id'])
             return jsonify(ret)
 
-        elif sub =='del_archive':
+        elif sub == 'del_archive':
             LogicNormal.del_archive(request.form['id'])
             return jsonify([])
     except Exception as e:
