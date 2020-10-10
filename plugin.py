@@ -10,7 +10,7 @@ from flask_login import login_required
 
 # sjva 공용
 from framework.logger import get_logger
-from framework import db, scheduler, socketio
+from framework import scheduler, socketio
 
 # 패키지
 package_name = __name__.split('.')[0]
@@ -71,12 +71,14 @@ def first_menu(sub):
 
         elif sub == 'request':
             arg['url'] = request.args.get('url', '')
-            arg['filename'] = '%(title)s-%(id)s.%(ext)s'
+            arg['save_path'] = ModelSetting.get('default_save_path')
+            arg['filename'] = ModelSetting.get('default_filename')
             arg['preset_list'] = LogicNormal.get_preset_list()
             return render_template('%s_%s.html' % (package_name, sub), arg=arg)
 
         elif sub == 'scheduler':
-            arg['filename'] = '%(title)s-%(id)s.%(ext)s'
+            arg['save_path'] = ModelSetting.get('default_save_path')
+            arg['filename'] = ModelSetting.get('default_filename')
             arg['preset_list'] = LogicNormal.get_preset_list()
             return render_template('%s_%s.html' % (package_name, sub), arg=arg)
 

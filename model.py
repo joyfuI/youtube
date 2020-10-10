@@ -10,13 +10,13 @@ from datetime import datetime
 # third-party
 
 # sjva 공용
-from framework import app, db, path_app_root
+from framework import app, db, path_data
 from framework.util import Util
 
 # 패키지
 from .plugin import logger, package_name
 
-app.config['SQLALCHEMY_BINDS'][package_name] = 'sqlite:///%s' % os.path.join(path_app_root, 'data', 'db', '%s.db' % package_name)
+app.config['SQLALCHEMY_BINDS'][package_name] = 'sqlite:///%s' % os.path.join(path_data, 'db', '%s.db' % package_name)
 #########################################################
 
 class ModelSetting(db.Model):
@@ -126,6 +126,7 @@ class ModelScheduler(db.Model):
     uploader = db.Column(db.String)
     uploader_url = db.Column(db.String)
     count = db.Column(db.Integer, nullable=False)
+    save_path = db.Column(db.String, nullable=False)
     filename = db.Column(db.String, nullable=False)
     format = db.Column(db.String, nullable=False)
     convert_mp3 = db.Column(db.Boolean, nullable=False)
@@ -138,6 +139,7 @@ class ModelScheduler(db.Model):
         self.uploader = data['uploader']
         self.uploader_url = data['uploader_url']
         self.count = data['count']
+        self.save_path = data['save_path']
         self.filename = data['filename']
         self.format = data['format']
         self.convert_mp3 = data['convert_mp3']
@@ -187,6 +189,8 @@ class ModelScheduler(db.Model):
             elif str(type(data)) == "<type 'int'>":
                 self.count = data
             else:
+                if 'save_path' in data:
+                    self.filename = data['save_path']
                 if 'filename' in data:
                     self.filename = data['filename']
                 if 'format' in data:
@@ -219,6 +223,7 @@ class ModelQueue(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     created_time = db.Column(db.DateTime, nullable=False)
     url = db.Column(db.String, nullable=False)
+    save_path = db.Column(db.String, nullable=False)
     filename = db.Column(db.String, nullable=False)
     format = db.Column(db.String, nullable=False)
     convert_mp3 = db.Column(db.Boolean, nullable=False)
@@ -228,6 +233,7 @@ class ModelQueue(db.Model):
     def __init__(self, data):
         self.created_time = datetime.now()
         self.url = data['webpage_url']
+        self.save_path = data['save_path']
         self.filename = data['filename']
         self.format = data['format']
         self.convert_mp3 = data['convert_mp3']

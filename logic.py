@@ -5,6 +5,7 @@ import os
 import traceback
 import time
 import threading
+import sqlite3
 
 # third-party
 
@@ -21,10 +22,11 @@ from .logic_normal import LogicNormal
 
 class Logic(object):
     db_default = {
-        'db_version': '1',
+        'db_version': '2',
         'interval': '360',
         'auto_start': 'False',
-        'save_path': os.path.join(path_data, 'download', package_name)
+        'default_save_path': os.path.join(path_data, 'download', package_name),
+        'default_filename': '%(title)s-%(id)s.%(ext)s'
     }
 
     @staticmethod
@@ -34,7 +36,7 @@ class Logic(object):
                 if db.session.query(ModelSetting).filter_by(key=key).count() == 0:
                     db.session.add(ModelSetting(key, value))
             db.session.commit()
-            # Logic.migration()
+            Logic.migration()
         except Exception as e:
             logger.error('Exception:%s', e)
             logger.error(traceback.format_exc())
@@ -128,3 +130,28 @@ class Logic(object):
             logger.error('Exception:%s', e)
             logger.error(traceback.format_exc())
             return False
+
+    @staticmethod
+    def migration():
+        try:
+            db_version = ModelSetting.get_int('db_version')
+            connect = sqlite3.connect(os.path.join(path_data, 'db', '%s.db' % package_name))
+
+            if db_version < 2:
+                cursor = connect.cursor()
+                cursor.execute("SELECT * FROM youtube_setting WHERE key = 'save_path'")
+                save_path = cursor.fetchone()[2]
+                cursor.execute("UPDATE youtube_setting SET value = ? WHERE key = 'default_save_path'", (save_path,))
+                cursor.execute("DELETE FROM youtube_setting WHERE key = 'save_path'")
+                cursor.execute("ALTER TABLE youtube_scheduler ADD save_path VARCHAR")
+                cursor.execute("UPDATE youtube_scheduler SET save_path = ?", (save_path,))
+                cursor.execute("ALTER TABLE youtube_queue ADD save_path VARCHAR")
+                cursor.execute("UPDATE youtube_queue SET save_path = ?", (save_path,))
+
+            connect.commit()
+            connect.close()
+            ModelSetting.set('db_version', Logic.db_default['db_version'])
+            db.session.flush()
+        except Exception as e:
+            logger.error('Exception:%s', e)
+            logger.error(traceback.format_exc())
