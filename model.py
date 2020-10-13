@@ -190,7 +190,7 @@ class ModelScheduler(db.Model):
                 self.count = data
             else:
                 if 'save_path' in data:
-                    self.filename = data['save_path']
+                    self.save_path = data['save_path']
                 if 'filename' in data:
                     self.filename = data['filename']
                 if 'format' in data:
