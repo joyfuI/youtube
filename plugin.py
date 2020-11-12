@@ -3,6 +3,7 @@
 # python
 import os
 import traceback
+from datetime import date
 
 # third-party
 from flask import Blueprint, request, render_template, redirect, jsonify
@@ -34,7 +35,7 @@ menu = {
 }
 
 plugin_info = {
-    'version': '0.2.1',
+    'version': '0.3.0',
     'name': 'youtube',
     'category_name': 'vod',
     'developer': 'joyfuI',
@@ -74,12 +75,14 @@ def first_menu(sub):
             arg['save_path'] = ModelSetting.get('default_save_path')
             arg['filename'] = ModelSetting.get('default_filename')
             arg['preset_list'] = LogicNormal.get_preset_list()
+            arg['date_after'] = date.today()
             return render_template('%s_%s.html' % (package_name, sub), arg=arg)
 
         elif sub == 'scheduler':
             arg['save_path'] = ModelSetting.get('default_save_path')
             arg['filename'] = ModelSetting.get('default_filename')
             arg['preset_list'] = LogicNormal.get_preset_list()
+            arg['date_after'] = date.today()
             return render_template('%s_%s.html' % (package_name, sub), arg=arg)
 
         elif sub == 'log':

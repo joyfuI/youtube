@@ -9,6 +9,12 @@ SJVA에서 "시스템 → 플러그인 → 플러그인 수동 설치" 칸에 �
 `https://github.com/joyfuI/youtube`
 
 ## Changelog
+v0.3.0
+* Python 3 지원  
+  Python 2를 유지한 채로 Python 3 지원을 추가했습니다.
+* 날짜 지정 기능 추가  
+  지정한 날짜 이후에 업로드된 동영상만 다운로드하는 옵션입니다.
+
 v0.2.1
 * 저장 폴더 수정이 안 되는 문제 수정
 
