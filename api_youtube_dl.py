@@ -45,7 +45,7 @@ class APIYoutubeDL(object):
 
     @staticmethod
     def download(plugin, key, url, filename=None, save_path=None, format_code=None, preferedformat=None,
-                 preferredcodec=None, preferredquality=None, archive=None, start=None):
+                 preferredcodec=None, preferredquality=None, dateafter=None, archive=None, start=None):
         data = {
             'plugin': plugin,
             'key': key,
@@ -63,6 +63,8 @@ class APIYoutubeDL(object):
             data['preferredcodec'] = preferredcodec
         if preferredquality:
             data['preferredquality'] = preferredquality
+        if dateafter:
+            data['dateafter'] = dateafter
         if archive:
             data['archive'] = archive
         if start:

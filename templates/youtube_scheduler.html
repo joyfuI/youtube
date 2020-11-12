@@ -34,6 +34,10 @@
                         {{ macros.setting_input_text('filename', '파일명', value=arg['filename'], desc='템플릿 규칙은 https://github.com/ytdl-org/youtube-dl/blob/master/README.md#output-template 참고') }}
                         {{ macros.setting_select('format', '동영상 포맷', arg['preset_list'], col='4') }}
                         {{ macros.setting_checkbox('convert_mp3', 'mp3 변환', value='False') }}
+                        {{ macros.setting_checkbox('daterange', '날짜 지정', value='False', desc='지정한 날짜 이후에 업로드된 동영상만 다운로드') }}
+                        <div id="daterange_div" class="collapse">
+                            {{ macros.setting_input_text('date_after', '', value=arg['date_after'], placeholder='YYYY-MM-DD', type='date') }}
+                        </div>
                     </form>
                 </div>
                 <div class="modal-footer">
@@ -68,6 +72,7 @@
                 $('#url').prop('disabled', false);
                 $('#modal_form')[0].reset();
                 $('#convert_mp3').bootstrapToggle('off');
+                $('#daterange').bootstrapToggle('off');
                 $("#schedule_modal").modal();
                 return false;
             });
@@ -81,6 +86,8 @@
                 $('#filename').val(current_data[index].filename);
                 $('#format').val(current_data[index].format);
                 $('#convert_mp3').bootstrapToggle((current_data[index].convert_mp3) ? "on" : "off");
+                $('#daterange').bootstrapToggle((current_data[index].date_after) ? "on" : "off");
+                $('#date_after').val((current_data[index].date_after) ? current_data[index].date_after : "");
                 $("#schedule_modal").modal();
                 return false;
             }).on('click', '#del_btn', function () {
@@ -104,6 +111,11 @@
                 if ($(this).prop('checked')) {
                     $('#format').val('bestaudio/best');
                 }
+            });
+
+            // 날짜 지정
+            $('#daterange').change(function () {
+                use_collapse('daterange');
             });
 
             // 스케줄 저장

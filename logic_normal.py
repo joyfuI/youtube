@@ -3,6 +3,7 @@
 # python
 import os
 import time
+from datetime import date
 
 # third-party
 
@@ -27,8 +28,9 @@ class LogicNormal(object):
             ModelScheduler.find(i.id).update(len(ret['entries']))
 
             archive = os.path.join(path_data, 'db', package_name, '%d.txt' % i.id)
+            date_after = i.date_after.strftime('%Y%m%d')
             ret = APIYoutubeDL.download(package_name, i.key, i.url, i.filename, i.save_path, i.format, None,
-                                        'mp3' if i.convert_mp3 else None, None, archive, True)
+                                        'mp3' if i.convert_mp3 else None, None, date_after, archive, True)
             if ret['errorCode'] == 0:
                 index = ret['index']
                 while True:
@@ -63,7 +65,8 @@ class LogicNormal(object):
             'save_path': form['save_path'],
             'filename': form['filename'],
             'format': form['format'],
-            'convert_mp3': bool(form['convert_mp3']) if str(form['convert_mp3']).lower() != 'false' else False
+            'convert_mp3': bool(form['convert_mp3']) if str(form['convert_mp3']).lower() != 'false' else False,
+            'date_after': date.fromisoformat(form['date_after']) if str(form['daterange']).lower() != 'false' else None
         }
         for i in form.getlist('download[]'):
             LogicQueue.add_queue(i, options)
@@ -85,7 +88,8 @@ class LogicNormal(object):
                 'save_path': form['save_path'],
                 'filename': form['filename'],
                 'format': form['format'],
-                'convert_mp3': bool(form['convert_mp3']) if str(form['convert_mp3']).lower() != 'false' else False
+                'convert_mp3': bool(form['convert_mp3']) if str(form['convert_mp3']).lower() != 'false' else False,
+                'date_after': date.fromisoformat(form['date_after']) if str(form['daterange']).lower() != 'false' else None
             }
             ModelScheduler.find(form['db_id']).update(data)
         else:
@@ -101,7 +105,8 @@ class LogicNormal(object):
                 'save_path': form['save_path'],
                 'filename': form['filename'],
                 'format': form['format'],
-                'convert_mp3': bool(form['convert_mp3']) if str(form['convert_mp3']).lower() != 'false' else False
+                'convert_mp3': bool(form['convert_mp3']) if str(form['convert_mp3']).lower() != 'false' else False,
+                'date_after': date.fromisoformat(form['date_after']) if str(form['daterange']).lower() != 'false' else None
             }
             ModelScheduler.create(data)
         return LogicNormal.get_scheduler()
