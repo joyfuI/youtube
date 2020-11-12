@@ -87,7 +87,17 @@
                 $('#format').val(current_data[index].format);
                 $('#convert_mp3').bootstrapToggle((current_data[index].convert_mp3) ? "on" : "off");
                 $('#daterange').bootstrapToggle((current_data[index].date_after) ? "on" : "off");
-                $('#date_after').val((current_data[index].date_after) ? current_data[index].date_after : "");
+                let date_after = current_data[index].date_after;
+                if (date_after) {
+                    date_after = new Date(date_after);
+                    let year = date_after.getFullYear().toString().padStart(4, '0');
+                    let month = (date_after.getMonth() + 1).toString().padStart(2, '0');
+                    let date = date_after.getDate().toString().padStart(2, '0');
+                    date_after = `${year}-${month}-${date}`;
+                } else {
+                    date_after = '';
+                }
+                $('#date_after').val(date_after);
                 $("#schedule_modal").modal();
                 return false;
             }).on('click', '#del_btn', function () {
