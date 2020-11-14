@@ -28,7 +28,7 @@ class LogicNormal(object):
             ModelScheduler.find(i.id).update(len(ret['entries']))
 
             archive = os.path.join(path_data, 'db', package_name, '%d.txt' % i.id)
-            date_after = i.date_after.strftime('%Y%m%d')
+            date_after = i.date_after.strftime('%Y%m%d') if i.date_after else None
             ret = APIYoutubeDL.download(package_name, i.key, i.url, i.filename, i.save_path, i.format, None,
                                         'mp3' if i.convert_mp3 else None, None, date_after, archive, True)
             if ret['errorCode'] == 0:
