@@ -61,12 +61,15 @@ class LogicNormal(object):
 
     @staticmethod
     def download(form):
+        date_after = form['date_after'].split('-')
+        date_after = list(map(lambda i: int(i), date_after))
+        year, month, day = date_after
         options = {
             'save_path': form['save_path'],
             'filename': form['filename'],
             'format': form['format'],
             'convert_mp3': bool(form['convert_mp3']) if str(form['convert_mp3']).lower() != 'false' else False,
-            'date_after': date.fromisoformat(form['date_after']) if str(form['daterange']).lower() != 'false' else None
+            'date_after': date(year, month, day) if str(form['daterange']).lower() != 'false' else None
         }
         for i in form.getlist('download[]'):
             LogicQueue.add_queue(i, options)
@@ -83,13 +86,16 @@ class LogicNormal(object):
 
     @staticmethod
     def add_scheduler(form):
+        date_after = form['date_after'].split('-')
+        date_after = list(map(lambda i: int(i), date_after))
+        year, month, day = date_after
         if form['db_id']:
             data = {
                 'save_path': form['save_path'],
                 'filename': form['filename'],
                 'format': form['format'],
                 'convert_mp3': bool(form['convert_mp3']) if str(form['convert_mp3']).lower() != 'false' else False,
-                'date_after': date.fromisoformat(form['date_after']) if str(form['daterange']).lower() != 'false' else None
+                'date_after': date(year, month, day) if str(form['daterange']).lower() != 'false' else None
             }
             ModelScheduler.find(form['db_id']).update(data)
         else:
@@ -106,7 +112,7 @@ class LogicNormal(object):
                 'filename': form['filename'],
                 'format': form['format'],
                 'convert_mp3': bool(form['convert_mp3']) if str(form['convert_mp3']).lower() != 'false' else False,
-                'date_after': date.fromisoformat(form['date_after']) if str(form['daterange']).lower() != 'false' else None
+                'date_after': date(year, month, day) if str(form['daterange']).lower() != 'false' else None
             }
             ModelScheduler.create(data)
         return LogicNormal.get_scheduler()
