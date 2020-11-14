@@ -28,7 +28,7 @@ class LogicQueue(object):
             time.sleep(10)  # youtube-dl 플러그인이 언제 로드될지 모르니 일단 10초 대기
             for i in ModelQueue.get_list():
                 logger.debug('queue add %s', i.url)
-                date_after = i.date_after.strftime('%Y%m%d')
+                date_after = i.date_after.strftime('%Y%m%d') if i.date_after else None
                 ret = APIYoutubeDL.download(package_name, i.key, i.url, i.filename, i.save_path, i.format, None,
                                             'mp3' if i.convert_mp3 else None, None, date_after, None, False)
                 if ret['errorCode'] == 0:
@@ -69,7 +69,7 @@ class LogicQueue(object):
         try:
             options['webpage_url'] = url
             entity = ModelQueue.create(options)
-            date_after = entity.date_after.strftime('%Y%m%d')
+            date_after = entity.date_after.strftime('%Y%m%d') if entity.date_after else None
             ret = APIYoutubeDL.download(package_name, entity.key, url, entity.filename, entity.save_path, entity.format,
                                         None, 'mp3' if entity.convert_mp3 else None, None, date_after, None, False)
             if ret['errorCode'] == 0:
