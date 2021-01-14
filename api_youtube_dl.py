@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# 최종 업데이트 20210111
 #########################################################
 # python
 from datetime import datetime
@@ -45,7 +46,7 @@ class APIYoutubeDL(object):
 
     @staticmethod
     def download(plugin, key, url, filename=None, save_path=None, format_code=None, preferedformat=None,
-                 preferredcodec=None, preferredquality=None, dateafter=None, archive=None, start=None):
+                 preferredcodec=None, preferredquality=None, dateafter=None, archive=None, start=None, cookiefile=None):
         data = {
             'plugin': plugin,
             'key': key,
@@ -69,6 +70,8 @@ class APIYoutubeDL(object):
             data['archive'] = archive
         if start:
             data['start'] = start
+        if cookiefile:
+            data['cookiefile'] = cookiefile
         if SystemModelSetting.get_bool('auth_use_apikey'):  # APIKEY
             data['apikey'] = SystemModelSetting.get('auth_apikey')
         return requests.post('%s/youtube-dl/api/download' % HOST_URL, data=data).json()

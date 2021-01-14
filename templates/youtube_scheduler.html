@@ -29,7 +29,7 @@
                 <div class="modal-body">
                     <form id="modal_form">
                         <input id="db_id" name="db_id" type="hidden" value="">
-                        {{ macros.setting_input_text('url', 'URL', placeholder='https:// 주소', desc='유튜브 채널이나 플레이리스트 주소') }}
+                        {{ macros.setting_input_text('url', 'URL', placeholder='https://www.youtube.com/playlist?list= 주소', desc='유튜브 플레이리스트 주소') }}
                         {{ macros.setting_input_text('save_path', '저장 폴더', value=arg['save_path'], placeholder='저장 폴더 경로', desc='템플릿 규칙 사용 불가. 폴더명에 템플릿 규칙을 사용하려면 저장 폴더엔 상위 폴더 경로를 지정하고 파일명에 하위 경로를 추가해주세요.') }}
                         {{ macros.setting_input_text('filename', '파일명', value=arg['filename'], desc='템플릿 규칙은 https://github.com/ytdl-org/youtube-dl/blob/master/README.md#output-template 참고') }}
                         {{ macros.setting_select('format', '동영상 포맷', arg['preset_list'], col='4') }}

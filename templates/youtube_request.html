@@ -2,7 +2,7 @@
 {% block content %}
 
     <div>
-        {{ macros.setting_input_text_and_buttons('url', 'URL', [['analysis_btn', '분석'], ['go_btn', 'Go']], value=arg['url'], desc='유튜브 동영상 또는 채널, 플레이리스트 주소') }}
+        {{ macros.setting_input_text_and_buttons('url', 'URL', [['analysis_btn', '분석'], ['go_btn', 'Go']], value=arg['url'], desc='유튜브 동영상 또는 플레이리스트 주소') }}
         <div id="detail"></div>
         <div id="list"></div>
     </div>
@@ -89,7 +89,7 @@
                     detail.empty();
                     list.empty();
                     if (current_info_dict['_type'] === 'playlist') {
-                        // 플레이리스트, 채널 주소
+                        // 플레이리스트 주소
                         detail.html(make_info_playlist(current_info_dict));
                         let str = '';
                         let index = 0;
