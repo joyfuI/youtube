@@ -23,7 +23,7 @@ class LogicNormal(object):
         for i in ModelScheduler.get_list():
             logger.debug('scheduler download %s', i.url)
             ret = APIYoutubeDL.info_dict(package_name, i.url)['info_dict']
-            if ret.get('_type') != 'playlist':
+            if ret is None or ret.get('_type') != 'playlist':
                 continue
             ModelScheduler.find(i.id).update(len(ret['entries']))
 
@@ -100,7 +100,7 @@ class LogicNormal(object):
             ModelScheduler.find(form['db_id']).update(data)
         else:
             ret = APIYoutubeDL.info_dict(package_name, form['url'])['info_dict']
-            if ret.get('_type') != 'playlist':
+            if ret is None or ret.get('_type') != 'playlist':
                 return None
             data = {
                 'webpage_url': ret['webpage_url'],
