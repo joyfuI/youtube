@@ -292,7 +292,7 @@
         }
 
         function convert_description(str) {
-            str = str.replace(/#([^\s#]+)/g, '<a href="https://www.youtube.com/results?search_query=%23$1" target="_blank">#$1</a>');
+            str = str.replace(/#([^\s#]+)/g, '<a href="https://www.youtube.com/hashtag/$1" target="_blank">#$1</a>');
             str = str.replace(/\n/g, '<br>');
             return str;
         }
