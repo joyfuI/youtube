@@ -29,12 +29,13 @@ class LogicQueue(object):
             for i in ModelQueue.get_list():
                 logger.debug('queue add %s', i.url)
                 date_after = i.date_after.strftime('%Y%m%d') if i.date_after else None
-                ret = APIYoutubeDL.download(package_name, i.key, i.url, i.filename, i.save_path, i.format, None,
-                                            'mp3' if i.convert_mp3 else None, None, date_after, None, False)
-                if ret['errorCode'] == 0:
-                    i.set_index(ret['index'])
+                download = APIYoutubeDL.download(package_name, i.key, i.url, filename=i.filename, save_path=i.save_path,
+                                                 format_code=i.format, preferredcodec='mp3' if i.convert_mp3 else None,
+                                                 dateafter=date_after, start=False)
+                if download['errorCode'] == 0:
+                    i.set_index(download['index'])
                 else:
-                    logger.debug('queue add fail %s', ret['errorCode'])
+                    logger.debug('queue add fail %s', download['errorCode'])
                     i.delete()
 
             LogicQueue.__thread = Thread(target=LogicQueue.thread_function)
@@ -50,15 +51,15 @@ class LogicQueue(object):
             while not ModelQueue.is_empty():
                 entity = ModelQueue.peek()
                 logger.debug('queue download %s', entity.url)
-                ret = APIYoutubeDL.start(package_name, entity.index, entity.key)
-                if ret['errorCode'] == 0:
+                start = APIYoutubeDL.start(package_name, entity.index, entity.key)
+                if start['errorCode'] == 0:
                     while True:
                         time.sleep(10)  # 10초 대기
-                        ret = APIYoutubeDL.status(package_name, entity.index, entity.key)
-                        if ret['status'] in ('COMPLETED', 'ERROR', 'STOP'):
+                        status = APIYoutubeDL.status(package_name, entity.index, entity.key)
+                        if status['status'] in ('COMPLETED', 'ERROR', 'STOP'):
                             break
                 else:
-                    logger.debug('queue download fail %s', ret)
+                    logger.debug('queue download fail %s', start['errorCode'])
                 entity.delete()
         except Exception as e:
             logger.error('Exception:%s', e)
@@ -70,12 +71,14 @@ class LogicQueue(object):
             options['webpage_url'] = url
             entity = ModelQueue.create(options)
             date_after = entity.date_after.strftime('%Y%m%d') if entity.date_after else None
-            ret = APIYoutubeDL.download(package_name, entity.key, url, entity.filename, entity.save_path, entity.format,
-                                        None, 'mp3' if entity.convert_mp3 else None, None, date_after, None, False)
-            if ret['errorCode'] == 0:
-                entity.set_index(ret['index'])
+            download = APIYoutubeDL.download(package_name, entity.key, url, filename=entity.filename,
+                                             save_path=entity.save_path, format_code=entity.format,
+                                             preferredcodec='mp3' if entity.convert_mp3 else None, dateafter=date_after,
+                                             start=False)
+            if download['errorCode'] == 0:
+                entity.set_index(download['index'])
             else:
-                logger.debug('queue add fail %d', ret['errorCode'])
+                logger.debug('queue add fail %d', download['errorCode'])
                 entity.delete()
                 return None
 
