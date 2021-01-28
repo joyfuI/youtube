@@ -22,25 +22,27 @@ class LogicNormal(object):
     def scheduler_function():
         for i in ModelScheduler.get_list():
             logger.debug('scheduler download %s', i.url)
-            ret = APIYoutubeDL.info_dict(package_name, i.url)['info_dict']
-            if ret is None or ret.get('_type') != 'playlist':
+            info_dict = APIYoutubeDL.info_dict(package_name, i.url)['info_dict']
+            if info_dict is None or info_dict.get('_type') != 'playlist':
                 continue
-            ModelScheduler.find(i.id).update(len(ret['entries']))
-
+            ModelScheduler.find(i.id).update(len(info_dict['entries']))
             archive = os.path.join(path_data, 'db', package_name, '%d.txt' % i.id)
             date_after = i.date_after.strftime('%Y%m%d') if i.date_after else None
-            ret = APIYoutubeDL.download(package_name, i.key, i.url, i.filename, i.save_path, i.format, None,
-                                        'mp3' if i.convert_mp3 else None, None, date_after, archive, True)
-            if ret['errorCode'] == 0:
-                index = ret['index']
+            download = APIYoutubeDL.download(package_name, i.key, i.url, filename=i.filename, save_path=i.save_path,
+                                             format_code=i.format, preferredcodec='mp3' if i.convert_mp3 else None,
+                                             dateafter=date_after, archive=archive, start=True)
+            if download['errorCode'] == 0:
+                index = download['index']
                 while True:
                     time.sleep(10)  # 10초 대기
-                    ret = APIYoutubeDL.status(package_name, index, i.key)
-                    if ret['status'] == 'COMPLETED':
+                    download = APIYoutubeDL.status(package_name, index, i.key)
+                    if download['status'] == 'COMPLETED':
                         ModelScheduler.find(i.id).update()
                         break
-                    elif ret['status'] in ('ERROR', 'STOP'):
+                    elif download['status'] in ('ERROR', 'STOP'):
                         break
+            else:
+                logger.debug('scheduler download fail %s', download['errorCode'])
 
     @staticmethod
     def get_preset_list():
@@ -99,15 +101,15 @@ class LogicNormal(object):
             }
             ModelScheduler.find(form['db_id']).update(data)
         else:
-            ret = APIYoutubeDL.info_dict(package_name, form['url'])['info_dict']
-            if ret is None or ret.get('_type') != 'playlist':
+            info_dict = APIYoutubeDL.info_dict(package_name, form['url'])['info_dict']
+            if info_dict is None or info_dict.get('_type') != 'playlist':
                 return None
             data = {
-                'webpage_url': ret['webpage_url'],
-                'title': ret['title'],
-                'uploader': ret.get('uploader', ''),
-                'uploader_url': ret.get('uploader_url', ''),
-                'count': len(ret['entries']),
+                'webpage_url': info_dict['webpage_url'],
+                'title': info_dict['title'],
+                'uploader': info_dict.get('uploader', ''),
+                'uploader_url': info_dict.get('uploader_url', ''),
+                'count': len(info_dict['entries']),
                 'save_path': form['save_path'],
                 'filename': form['filename'],
                 'format': form['format'],
