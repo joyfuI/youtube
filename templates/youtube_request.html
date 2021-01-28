@@ -2,7 +2,8 @@
 {% block content %}
 
     <div>
-        {{ macros.setting_input_text_and_buttons('url', 'URL', [['analysis_btn', '분석'], ['go_btn', 'Go']], value=arg['url'], desc='유튜브 동영상 또는 플레이리스트 주소') }}
+        {{ macros.setting_input_text_and_buttons('url', 'URL', [['analysis_btn', '분석'], ['go_btn', 'Go']], value=arg['url'], desc='유튜브 동영상 또는 채널, 플레이리스트 주소') }}
+        <div id="button"></div>
         <div id="detail"></div>
         <div id="list"></div>
     </div>
@@ -19,7 +20,7 @@
                 </div>
                 <div class="modal-body">
                     <input id="modal_type" type="hidden" value="0">
-                    {{ macros.setting_input_text('video_id', 'ID', value='') }}
+                    {{ macros.setting_input_textarea('video_url', 'URL', value='', disabled=True) }}
                     <form id="modal_form">
                         <input id="db_id" name="db_id" type="hidden" value="">
                         {{ macros.setting_input_text('save_path', '저장 폴더', value=arg['save_path'], placeholder='저장 폴더 경로', desc='템플릿 규칙 사용 불가. 폴더명에 템플릿 규칙을 사용하려면 저장 폴더엔 상위 폴더 경로를 지정하고 파일명에 하위 경로를 추가해주세요.') }}
@@ -53,15 +54,11 @@
             5: '허용되지 않은 값이 있음',
             10: '실패'
         };
-        let current_info_dict = null;
-        let download_list = [];
 
         $(function () {
-            $('#video_id').prop('readonly', true);
-
             $('#analysis_btn').click(function () {
-                let url = $('#url').val();
-                if (url.startsWith('http') === false) {
+                const url = $('#url').val();
+                if (!url.startsWith('http')) {
                     $.notify('<strong>URL을 입력하세요.</strong>', {
                         type: 'warning'
                     });
@@ -83,24 +80,39 @@
                         });
                         return false;
                     }
-                    current_info_dict = data.info_dict;
-                    let detail = $('#detail');
-                    let list = $('#list');
-                    detail.empty();
-                    list.empty();
-                    if (current_info_dict['_type'] === 'playlist') {
+                    const button = $('#button').empty();
+                    const detail = $('#detail').empty();
+                    const list = $('#list').empty();
+                    const info_dict = data.info_dict;
+                    const type = check_type(info_dict);
+                    if (type === 'playlist') {
                         // 플레이리스트 주소
-                        detail.html(make_info_playlist(current_info_dict));
+                        button.html(make_button_scheduler(info_dict['webpage_url']));
+                        detail.html(make_info(info_dict));
                         let str = '';
                         let index = 0;
-                        for (let i of current_info_dict['entries']) {
-                            str += make_item(i, ++index);
+                        for (const entry of info_dict['entries']) {
+                            if (info_dict['extractor_key'] === 'YoutubeTab') {
+                                str += make_item_youtube(entry, ++index);
+                            } else {
+                                str += make_item(entry, ++index);
+                            }
                         }
                         list.html(str);
                         $('input.youtube-list').bootstrapToggle();
-                    } else {
+                    } else if (type === 'video') {
                         // 동영상 주소
-                        detail.html(make_info(current_info_dict));
+                        button.html(make_button_download(info_dict['webpage_url']));
+                        detail.html(make_info(info_dict));
+                    } else if (type === 'channel') {
+                        // 유튜브 채널 주소
+                        detail.html(make_info(info_dict));
+                        let str = '';
+                        let index = 0;
+                        for (const entry of info_dict['entries']) {
+                            str += make_item_channel(entry, ++index);
+                        }
+                        list.html(str);
                     }
                 }).fail(function () {
                     $.notify('<strong>요청 실패</strong>', {
@@ -111,44 +123,47 @@
             });
 
             $('#go_btn').click(function () {
-                let url = $('#url').val();
-                if (url.startsWith('http') === true) {
+                const url = $('#url').val();
+                if (url.startsWith('http')) {
                     open(url, '_blank');
                 }
                 return false;
             });
 
-            $('#detail, #list').on('click', '#download_btn', function () {
+            $('#button, #list').on('click', '#add_download_btn', function () {
                 // 다운로드 추가
-                let data = $(this).data();
-                download_list = [`https://www.youtube.com/watch?v=${data.id}`];
-
+                const data = $(this).data();
                 $('#youtube_modal_title').text('다운로드 추가');
                 $('#modal_type').val(0);
-                $('#video_id').val(data.id);
+                $('#video_url').val(data.url);
                 $('#youtube_modal').modal();
+                return false;
+            }).on('click', '#request_btn', function () {
+                // 요청
+                const data = $(this).data();
+                $('#url').val(data.url);
+                $('#analysis_btn').click();
+                return false;
             });
 
-            $('#detail').on('click', '#check_download_btn', function () {
+            $('#button').on('click', '#check_download_btn', function () {
                 // 선택 다운로드 추가
-                download_list = [];
-                let video_id = '';
+                let urls = '';
                 $('input.youtube-list').each(function (index, item) {
                     if (item.checked) {
-                        let data = item.dataset;
-                        download_list.push(`https://www.youtube.com/watch?v=${data.id}`);
-                        video_id += `${data.id} | `;
+                        const data = item.dataset;
+                        urls += `${data.url}\n`;
                     }
                 });
-                video_id = video_id.slice(0, -3);
-                if (download_list.length === 0) {
+                urls = urls.slice(0, -1);
+                if (urls.length === 0) {
                     $.notify('<strong>다운로드할 영상을 선택하세요.</strong>', {
                         type: 'warning'
                     });
                 } else {
                     $('#youtube_modal_title').text('선택 다운로드 추가');
                     $('#modal_type').val(0);
-                    $('#video_id').val(video_id);
+                    $('#video_url').val(urls);
                     $('#youtube_modal').modal();
                 }
                 return false;
@@ -162,9 +177,10 @@
                 return false;
             }).on('click', '#add_scheduler_btn', function () {
                 // 스케줄러에 추가
+                const data = $(this).data();
                 $('#youtube_modal_title').text('스케줄러에 추가');
                 $('#modal_type').val(1);
-                $('#video_id').val(current_info_dict['id']);
+                $('#video_url').val(data.url);
                 $("#youtube_modal").modal();
                 return false;
             });
@@ -183,11 +199,11 @@
 
             // 모달 추가 버튼
             $('#youtube_modal_save_btn').click(function () {
-                let type = parseInt($('#modal_type').val());
-                let form_data = $('#modal_form').serializeObject();
+                const type = parseInt($('#modal_type').val());
+                const form_data = $('#modal_form').serializeObject();
                 if (type === 0) {
                     // 다운로드 추가
-                    form_data['download'] = download_list;
+                    form_data['download'] = $('#video_url').val().split('\n');
                     $.ajax({
                         url: `/${package_name}/ajax/add_download`,
                         type: 'POST',
@@ -207,7 +223,7 @@
                     });
                 } else if (type === 1) {
                     // 스케줄러 추가
-                    form_data['url'] = 'https://www.youtube.com/playlist?list=' + $('#video_id').val();
+                    form_data['url'] = $('#video_url').val();
                     $.ajax({
                         url: `/${package_name}/ajax/add_scheduler`,
                         type: 'POST',
@@ -230,19 +246,76 @@
             });
         });
 
+        function check_type(info_dict) {
+            if (info_dict['_type'] === 'playlist') {
+                if (info_dict['extractor_key'] === 'YoutubeTab'
+                    && info_dict['entries'].length > 0
+                    && info_dict['entries'][0]['_type'] === 'url') {
+                    return 'channel';
+                } else {
+                    return 'playlist';
+                }
+            } else {
+                return 'video';
+            }
+        }
+
+        function make_button_download(url) {
+            return m_button('add_download_btn', '다운로드 추가', [{key: 'url', value: url}]);
+        }
+
+        function make_button_scheduler(url) {
+            let str = m_button('check_download_btn', '선택 다운로드 추가');
+            str += m_button('all_check_on_btn', '전체 선택');
+            str += m_button('all_check_off_btn', '전체 해제');
+            str += m_button('add_scheduler_btn', '스케줄러에 추가', [{key: 'url', value: url}]);
+            return m_button_group(str);
+        }
+
         function make_info(data) {
-            let str = m_button('download_btn', '다운로드 추가', [{key: 'id', value: data['id']}]);
-            str += m_hr_black();
+            let str = m_hr_black();
             str += m_row_start(0);
             // 썸네일
-            str += m_col(3, `<img class="img-fluid" src="${data['thumbnail']}" alt="${data['title']}">`);
+            if (data['thumbnail']) {
+                str += m_col(3, `<img class="img-fluid" src="${data['thumbnail']}" alt="${data['title']}">`);
+            }
             // 정보
-            let tmp = make_col('제목', `<a href="${data['webpage_url']}" target="_blank">${data['title']}</a>`);
-            tmp += make_col('업로더', `<a href="${data['uploader_url']}" target="_blank">${data['uploader']}</a>`);
-            let date = data['upload_date'];
-            tmp += make_col('날짜/조회수', `${date.substr(0, 4)}. ${date.substr(4, 2)}. ${date.substr(6, 2)}. / ${data['view_count'].toLocaleString()}회`);
-            tmp += make_col('설명', convert_description(data['description']));
-            tmp += make_col('길이/화질', `${convert_duration(data['duration'])} / ${data['width']}x${data['height']}@${data['fps']}`);
+            let tmp = '';
+            if (data['webpage_url']) {
+                tmp += make_col('제목', `<a href="${data['webpage_url']}" target="_blank">${data['title']}</a>`);
+            } else {
+                tmp += make_col('제목', data['title']);
+            }
+            if (data['uploader']) {
+                if (data['uploader_url']) {
+                    tmp += make_col('업로더', `<a href="${data['uploader_url']}" target="_blank">${data['uploader']}</a>`);
+                } else {
+                    tmp += make_col('업로더', data['uploader']);
+                }
+            }
+            if (data['upload_date']) {
+                let date = data['upload_date'];
+                tmp += make_col('날짜', `${date.substr(0, 4)}. ${date.substr(4, 2)}. ${date.substr(6, 2)}.`);
+            }
+            if (data['view_count']) {
+                tmp += make_col('조회수', `${data['view_count'].toLocaleString()}회`);
+            }
+            if (data['description']) {
+                tmp += make_col('설명', convert_description(data['description']));
+            }
+            if (data['duration']) {
+                tmp += make_col('길이', convert_duration(data['duration']));
+            }
+            if (data['width'] && data['height']) {
+                let tmp2 = `${data['width']}x${data['height']}`;
+                if (data['fps']) {
+                    tmp2 += `@${data['fps']}`;
+                }
+                tmp += make_col('화질', tmp2);
+            }
+            if (data['entries']) {
+                tmp += make_col('동영상 수', `${data['entries'].length}개`);
+            }
             str += m_col(9, tmp);
 
             str += m_row_end();
@@ -250,32 +323,50 @@
             return str;
         }
 
-        function make_info_playlist(data) {
-            let tmp = m_button('check_download_btn', '선택 다운로드 추가');
-            tmp += m_button('all_check_on_btn', '전체 선택');
-            tmp += m_button('all_check_off_btn', '전체 해제');
-            tmp += m_button('add_scheduler_btn', '스케줄러에 추가');
-            let str = m_button_group(tmp);
-            str += m_hr_black();
-            // 정보
-            str += make_col('제목', `<a href="${data['webpage_url']}" target="_blank">${data['title']}</a>`);
-            str += make_col('업로더', `<a href="${data['uploader_url']}" target="_blank">${data['uploader']}</a>`);
-            str += make_col('동영상 수', `${data['entries'].length}개`);
-
-            str += m_hr_black();
-            return str;
-        }
-
         function make_item(data, index) {
             let str = m_row_start(0);
             str += m_col(1, index);
-            str += m_col(2, `<img class="img-fluid" src="https://i.ytimg.com/vi/${data['id']}/hqdefault.jpg" alt="${data['title']}">`);
-            str += m_col(6, `<a href="https://www.youtube.com/watch?v=${data['id']}" target="_blank">${data['title']}</a>`);
+            if (data['thumbnail']) {
+                str += m_col(2, `<img class="img-fluid" src="${data['thumbnail']}" alt="${data['title']}">`);
+            } else {
+                str += m_col(2, '');
+            }
+            str += m_col(6, `<a href="${data['url']}" target="_blank">${data['title']}</a>`);
 
             let tmp = '<div class="form-inline">';
-            tmp += `<input class="youtube-list" type="checkbox" data-toggle="toggle" data-on="선 택" data-off="-" data-onstyle="success" data-offstyle="danger" data-size="small" data-id="${data['id']}" data-title="${data['title']}" checked>&nbsp;&nbsp;&nbsp;&nbsp;`;
-            tmp += m_button('download_btn', '다운로드 추가', [{key: 'id', value: data['id']}]);
+            tmp += `<input class="youtube-list" type="checkbox" data-toggle="toggle" data-on="선 택" data-off="-" data-onstyle="success" data-offstyle="danger" data-size="small" data-url="${data['url']}" checked>&nbsp;&nbsp;&nbsp;&nbsp;`;
+            tmp += make_button_download(data['url']);
             tmp += '</div>';
+            str += m_col(3, tmp, 'right');
+
+            str += m_row_end();
+            str += m_hr(0);
+            return str;
+        }
+
+        function make_item_youtube(data, index) {
+            let str = m_row_start(0);
+            str += m_col(1, index);
+            str += m_col(2, `<img class="img-fluid" src="https://i.ytimg.com/vi/${data['id']}/hqdefault.jpg" alt="${data['title']}">`);
+            str += m_col(6, `<a href="https://www.youtube.com/watch?v=${data['url']}" target="_blank">${data['title']}</a>`);
+
+            let tmp = '<div class="form-inline">';
+            tmp += `<input class="youtube-list" type="checkbox" data-toggle="toggle" data-on="선 택" data-off="-" data-onstyle="success" data-offstyle="danger" data-size="small" data-url="https://www.youtube.com/watch?v=${data['url']}"}" checked>&nbsp;&nbsp;&nbsp;&nbsp;`;
+            tmp += make_button_download(`https://www.youtube.com/watch?v=${data['url']}`);
+            tmp += '</div>';
+            str += m_col(3, tmp, 'right');
+
+            str += m_row_end();
+            str += m_hr(0);
+            return str;
+        }
+
+        function make_item_channel(data, index) {
+            let str = m_row_start(0);
+            str += m_col(1, index);
+            str += m_col(8, `<a href="${data['url']}" target="_blank">${data['title']}</a>`);
+
+            let tmp = m_button('request_btn', '분석', [{key: 'url', value: data['url']}]);
             str += m_col(3, tmp, 'right');
 
             str += m_row_end();
@@ -299,9 +390,9 @@
 
         function convert_duration(int) {
             let str = '';
-            let h = Math.floor(int / 3600);
-            let m = Math.floor((int % 3600) / 60);
-            let s = int % 60;
+            const h = Math.floor(int / 3600);
+            const m = Math.floor((int % 3600) / 60);
+            const s = int % 60;
             if (h !== 0) {
                 str += `${h}:`;
                 str += (m < 10) ? `0${m}` : m;
