@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 {% block content %}
 
-    <div>
-        {{ macros.setting_input_text_and_buttons('url', 'URL', [['analysis_btn', '분석'], ['go_btn', 'Go']], value=arg['url'], desc='유튜브 동영상 또는 채널, 플레이리스트 주소') }}
-        <div id="button"></div>
-        <div id="detail"></div>
-        <div id="list"></div>
+    <div id="content_div">
+        {{ macros.setting_input_text_and_buttons('url', 'URL', [['analysis_btn', '분석'], ['go_btn', 'Go']], value=arg['url'], desc=['유튜브 동영상 또는 채널, 플레이리스트 주소', '다른 동영상 사이트도 지원']) }}
+        <div id="button_div"></div>
+        <div id="detail_div"></div>
+        <div id="list_div"></div>
     </div>
 
     <!-- Modal -->
@@ -20,7 +20,7 @@
                 </div>
                 <div class="modal-body">
                     <input id="modal_type" type="hidden" value="0">
-                    {{ macros.setting_input_textarea('video_url', 'URL', value='', disabled=True) }}
+                    {{ macros.setting_input_textarea('video_urls', 'URL', value='', disabled=True) }}
                     <form id="modal_form">
                         <input id="db_id" name="db_id" type="hidden" value="">
                         {{ macros.setting_input_text('save_path', '저장 폴더', value=arg['save_path'], placeholder='저장 폴더 경로', desc='템플릿 규칙 사용 불가. 폴더명에 템플릿 규칙을 사용하려면 저장 폴더엔 상위 폴더 경로를 지정하고 파일명에 하위 경로를 추가해주세요.') }}
@@ -55,196 +55,201 @@
             10: '실패'
         };
 
-        $(function () {
-            $('#analysis_btn').click(function () {
-                const url = $('#url').val();
-                if (!url.startsWith('http')) {
-                    $.notify('<strong>URL을 입력하세요.</strong>', {
-                        type: 'warning'
-                    });
-                    return false;
-                }
+        const analysis_btn = document.getElementById('analysis_btn');
+        analysis_btn.addEventListener('click', click_analysis_btn);
 
-                $.ajax({
-                    url: `/${package_name}/ajax/analysis`,
-                    type: 'POST',
-                    cache: false,
-                    data: {
-                        url: url
-                    },
-                    dataType: 'json'
-                }).done(function (data) {
-                    if (data.errorCode !== 0) {
-                        $.notify(`<strong>분석 실패</strong><br>${error_code[data.errorCode]}`, {
-                            type: 'warning'
-                        });
-                        return false;
-                    }
-                    const button = $('#button').empty();
-                    const detail = $('#detail').empty();
-                    const list = $('#list').empty();
-                    const info_dict = data.info_dict;
-                    const type = check_type(info_dict);
-                    if (type === 'playlist') {
-                        // 플레이리스트 주소
-                        button.html(make_button_scheduler(info_dict['webpage_url']));
-                        detail.html(make_info(info_dict));
-                        let str = '';
-                        let index = 0;
-                        for (const entry of info_dict['entries']) {
-                            if (info_dict['extractor_key'] === 'YoutubeTab') {
-                                str += make_item_youtube(entry, ++index);
-                            } else {
-                                str += make_item(entry, ++index);
-                            }
-                        }
-                        list.html(str);
-                        $('input.youtube-list').bootstrapToggle();
-                    } else if (type === 'video') {
-                        // 동영상 주소
-                        button.html(make_button_download(info_dict['webpage_url']));
-                        detail.html(make_info(info_dict));
-                    } else if (type === 'channel') {
-                        // 유튜브 채널 주소
-                        detail.html(make_info(info_dict));
-                        let str = '';
-                        let index = 0;
-                        for (const entry of info_dict['entries']) {
-                            str += make_item_channel(entry, ++index);
-                        }
-                        list.html(str);
-                    }
-                }).fail(function () {
-                    $.notify('<strong>요청 실패</strong>', {
-                        type: 'danger'
-                    });
-                });
-                return false;
-            });
-
-            $('#go_btn').click(function () {
-                const url = $('#url').val();
-                if (url.startsWith('http')) {
-                    open(url, '_blank');
-                }
-                return false;
-            });
-
-            $('#button, #list').on('click', '#add_download_btn', function () {
-                // 다운로드 추가
-                const data = $(this).data();
-                $('#youtube_modal_title').text('다운로드 추가');
-                $('#modal_type').val(0);
-                $('#video_url').val(data.url);
-                $('#youtube_modal').modal();
-                return false;
-            }).on('click', '#request_btn', function () {
-                // 요청
-                const data = $(this).data();
-                $('#url').val(data.url);
-                $('#analysis_btn').click();
-                return false;
-            });
-
-            $('#button').on('click', '#check_download_btn', function () {
-                // 선택 다운로드 추가
-                let urls = '';
-                $('input.youtube-list').each(function (index, item) {
-                    if (item.checked) {
-                        const data = item.dataset;
-                        urls += `${data.url}\n`;
-                    }
-                });
-                urls = urls.slice(0, -1);
-                if (urls.length === 0) {
-                    $.notify('<strong>다운로드할 영상을 선택하세요.</strong>', {
-                        type: 'warning'
-                    });
-                } else {
-                    $('#youtube_modal_title').text('선택 다운로드 추가');
-                    $('#modal_type').val(0);
-                    $('#video_url').val(urls);
-                    $('#youtube_modal').modal();
-                }
-                return false;
-            }).on('click', '#all_check_on_btn', function () {
-                // 전체 선택
-                $('input.youtube-list').bootstrapToggle('on');
-                return false;
-            }).on('click', '#all_check_off_btn', function () {
-                // 전체 해제
-                $('input.youtube-list').bootstrapToggle('off');
-                return false;
-            }).on('click', '#add_scheduler_btn', function () {
-                // 스케줄러에 추가
-                const data = $(this).data();
-                $('#youtube_modal_title').text('스케줄러에 추가');
-                $('#modal_type').val(1);
-                $('#video_url').val(data.url);
-                $("#youtube_modal").modal();
-                return false;
-            });
-
-            // mp3 변환
-            $('#convert_mp3').change(function () {
-                if ($(this).prop('checked')) {
-                    $('#format').val('bestaudio/best');
-                }
-            });
-
-            // 날짜 지정
-            $('#daterange').change(function () {
-                use_collapse('daterange');
-            });
-
-            // 모달 추가 버튼
-            $('#youtube_modal_save_btn').click(function () {
-                const type = parseInt($('#modal_type').val());
-                const form_data = $('#modal_form').serializeObject();
-                if (type === 0) {
-                    // 다운로드 추가
-                    form_data['download'] = $('#video_url').val().split('\n');
-                    $.ajax({
-                        url: `/${package_name}/ajax/add_download`,
-                        type: 'POST',
-                        cache: false,
-                        data: form_data,
-                        dataType: 'json'
-                    }).done(function (data) {
-                        $("#youtube_modal").modal('hide');
-                        $.notify(`<strong>${data}개를 큐에 추가하였습니다.</strong>`, {
-                            type: 'success'
-                        });
-                    }).fail(function () {
-                        $("#youtube_modal").modal('hide');
-                        $.notify('<strong>실패하였습니다.</strong>', {
-                            type: 'danger'
-                        });
-                    });
-                } else if (type === 1) {
-                    // 스케줄러 추가
-                    form_data['url'] = $('#video_url').val();
-                    $.ajax({
-                        url: `/${package_name}/ajax/add_scheduler`,
-                        type: 'POST',
-                        cache: false,
-                        data: form_data,
-                        dataType: 'json'
-                    }).done(function () {
-                        $("#youtube_modal").modal('hide');
-                        $.notify('<strong>스케줄을 저장하였습니다.</strong>', {
-                            type: 'success'
-                        });
-                    }).fail(function () {
-                        $("#youtube_modal").modal('hide');
-                        $.notify('<strong>실패하였습니다.</strong>', {
-                            type: 'danger'
-                        });
-                    });
-                }
-                return false;
-            });
+        const go_btn = document.getElementById('go_btn');
+        go_btn.addEventListener('click', (event) => {
+            event.preventDefault();
+            const url = document.getElementById('url').value;
+            if (url.startsWith('http')) {
+                open(url, '_blank');
+            }
         });
+
+        const content_div = document.getElementById('content_div');
+        content_div.addEventListener('click', (event) => {
+            event.preventDefault();
+            const target = event.target;
+            if (target.tagName !== 'BUTTON') {
+                return;
+            }
+            const data = target.dataset;
+            if (target.classList.contains('youtube-download')) {
+                // 다운로드 추가
+                document.getElementById('youtube_modal_title').textContent = '다운로드 추가';
+                document.getElementById('modal_type').value = '0';
+                document.getElementById('video_urls').value = data.url;
+                $('#youtube_modal').modal();
+            } else if (target.classList.contains('youtube-request')) {
+                // 요청
+                document.getElementById('url').value = data.url;
+                click_analysis_btn(event);
+            }
+        });
+
+        const button_div = document.getElementById('button_div');
+        button_div.addEventListener('click', (event) => {
+            event.preventDefault();
+            const target = event.target;
+            if (target.tagName !== 'BUTTON') {
+                return;
+            }
+            switch (target.id) {
+                // 선택 다운로드 추가
+                case 'check_download_btn':
+                    let urls = '';
+                    for (const item of document.querySelectorAll('input.youtube-list')) {
+                        if (item.checked) {
+                            urls += `${item.dataset.url}\n`;
+                        }
+                    }
+                    urls = urls.slice(0, -1);
+                    if (urls.length === 0) {
+                        notify('다운로드할 영상을 선택하세요.', 'warning');
+                    } else {
+                        document.getElementById('youtube_modal_title').textContent = '선택 다운로드 추가';
+                        document.getElementById('modal_type').value = '0';
+                        document.getElementById('video_urls').value = urls;
+                        $('#youtube_modal').modal();
+                    }
+                    break;
+
+                // 전체 선택
+                case 'all_check_on_btn':
+                    $('input.youtube-list').bootstrapToggle('on');
+                    break;
+
+                // 전체 해제
+                case 'all_check_off_btn':
+                    $('input.youtube-list').bootstrapToggle('off');
+                    break;
+
+                // 스케줄러에 추가
+                case 'add_scheduler_btn':
+                    document.getElementById('youtube_modal_title').textContent = '스케줄러에 추가';
+                    document.getElementById('modal_type').value = '1';
+                    document.getElementById('video_urls').value = target.dataset.url;
+                    $('#youtube_modal').modal();
+                    break;
+            }
+        });
+
+        // mp3 변환
+        $('#convert_mp3').change(() => {
+            if (document.getElementById('convert_mp3').checked) {
+                document.getElementById('format').value = 'bestaudio/best';
+            }
+        });
+
+        // 날짜 지정
+        $('#daterange').change(() => {
+            use_collapse('daterange');
+        });
+
+        // 모달 추가 버튼
+        const youtube_modal_save_btn = document.getElementById('youtube_modal_save_btn');
+        youtube_modal_save_btn.addEventListener('click', (event) => {
+            event.preventDefault();
+            const type = parseInt(document.getElementById('modal_type').value);
+            const form_data = new URLSearchParams($('#modal_form').serializeObject());
+            const video_urls = document.getElementById('video_urls');
+            if (type === 0) {
+                // 다운로드 추가
+                video_urls.value.split('\n').forEach((url) => form_data.append('download[]', url));
+                fetch(`/${package_name}/ajax/add_download`, {
+                    method: 'POST',
+                    cache: 'no-cache',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+                    },
+                    body: form_data
+                }).then(response => response.json()).then((data) => {
+                    notify(`${data}개를 큐에 추가하였습니다.`, 'success');
+                }).catch(() => {
+                    notify('실패하였습니다.', 'danger');
+                });
+            } else if (type === 1) {
+                // 스케줄러 추가
+                form_data.append('url', document.getElementById('video_urls').value);
+                fetch(`/${package_name}/ajax/add_scheduler`, {
+                    method: 'POST',
+                    cache: 'no-cache',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+                    },
+                    body: form_data
+                }).then(response => response.json()).then(() => {
+                    notify('스케줄을 저장하였습니다.', 'success');
+                }).catch(() => {
+                    notify('실패하였습니다.', 'danger');
+                });
+            }
+            $('#youtube_modal').modal('hide');
+        });
+
+        function click_analysis_btn(event) {
+            event.preventDefault();
+            const url = document.getElementById('url').value;
+            if (!url.startsWith('http')) {
+                notify('URL을 입력하세요.', 'warning');
+                return;
+            }
+            fetch(`/${package_name}/ajax/analysis`, {
+                method: 'POST',
+                cache: 'no-cache',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+                },
+                body: new URLSearchParams({
+                    url: url
+                })
+            }).then(response => response.json()).then((data) => {
+                if (data.errorCode !== 0) {
+                    notify('분석 실패', 'warning');
+                    return;
+                }
+                const button_div = document.getElementById('button_div');
+                button_div.innerHTML = '';
+                const detail_div = document.getElementById('detail_div');
+                detail_div.innerHTML = '';
+                const list_div = document.getElementById('list_div');
+                list_div.innerHTML = '';
+                const info_dict = data.info_dict;
+                const type = check_type(info_dict);
+                if (type === 'playlist') {
+                    // 플레이리스트 주소
+                    button_div.innerHTML = make_button_scheduler(info_dict['webpage_url']);
+                    detail_div.innerHTML = make_info(info_dict);
+                    let str = '';
+                    let index = 0;
+                    for (const entry of info_dict['entries']) {
+                        if (info_dict['extractor_key'] === 'YoutubeTab') {
+                            str += make_item_youtube(entry, ++index);
+                        } else {
+                            str += make_item(entry, ++index);
+                        }
+                    }
+                    list_div.innerHTML = str;
+                    $('input.youtube-list').bootstrapToggle();
+                } else if (type === 'video') {
+                    // 동영상 주소
+                    button_div.innerHTML = make_button_download(info_dict['webpage_url']);
+                    detail_div.innerHTML = make_info(info_dict);
+                } else if (type === 'channel') {
+                    // 유튜브 채널 주소
+                    detail_div.innerHTML = make_info(info_dict);
+                    let str = '';
+                    let index = 0;
+                    for (const entry of info_dict['entries']) {
+                        str += make_item_channel(entry, ++index);
+                    }
+                    list_div.innerHTML = str;
+                }
+            }).catch(() => {
+                notify('요청 실패', 'danger');
+            });
+        }
 
         function check_type(info_dict) {
             if (info_dict['_type'] === 'playlist') {
@@ -261,7 +266,7 @@
         }
 
         function make_button_download(url) {
-            return m_button('add_download_btn', '다운로드 추가', [{key: 'url', value: url}]);
+            return `<button class="btn btn-sm btn-outline-success youtube-download" data-url="${url}">다운로드 추가</button>`;
         }
 
         function make_button_scheduler(url) {
@@ -366,7 +371,7 @@
             str += m_col(1, index);
             str += m_col(8, `<a href="${data['url']}" target="_blank">${data['title']}</a>`);
 
-            let tmp = m_button('request_btn', '분석', [{key: 'url', value: data['url']}]);
+            let tmp = `<button class="btn btn-sm btn-outline-success youtube-request" data-url="${url}">분석</button>`;
             str += m_col(3, tmp, 'right');
 
             str += m_row_end();
