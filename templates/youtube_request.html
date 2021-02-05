@@ -2,7 +2,7 @@
 {% block content %}
 
     <div id="content_div">
-        {{ macros.setting_input_text_and_buttons('url', 'URL', [['analysis_btn', '분석'], ['go_btn', 'Go']], value=arg['url'], desc='유튜브 동영상 또는 채널, 플레이리스트 주소') }}
+        {{ macros.setting_input_text_and_buttons('url', 'URL', [['analysis_btn', '분석'], ['go_btn', 'Go']], value=arg['url'], desc=['유튜브 동영상 또는 채널, 플레이리스트 주소', '다른 동영상 사이트도 지원']) }}
         <div id="button_div"></div>
         <div id="detail_div"></div>
         <div id="list_div"></div>
