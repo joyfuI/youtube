@@ -79,12 +79,12 @@ class LogicNormal(object):
 
     @staticmethod
     def get_scheduler():
-        ret = []
+        scheduler_list = []
         for i in ModelScheduler.get_list(True):
             i['last_time'] = i['last_time'].strftime('%m-%d %H:%M:%S')
             i['path'] = os.path.join(i['save_path'], i['filename'])
-            ret.append(i)
-        return ret
+            scheduler_list.append(i)
+        return scheduler_list
 
     @staticmethod
     def add_scheduler(form):

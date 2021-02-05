@@ -134,7 +134,7 @@
         schedule_modal_save_btn.addEventListener('click', (event) => {
             event.preventDefault();
             const url = document.getElementById('url').value;
-            if (url.startsWith('http') === false) {
+            if (!url.startsWith('http')) {
                 notify('URL을 입력하세요.', 'warning');
                 return;
             }
@@ -161,9 +161,9 @@
         function make_list(data) {
             current_data = {};
             let str = '';
-            for (let i of data) {
-                current_data[i.id] = i;
-                str += make_item(i);
+            for (const item of data) {
+                current_data[item.id] = item;
+                str += make_item(item);
             }
             list_div.innerHTML = str;
         }
