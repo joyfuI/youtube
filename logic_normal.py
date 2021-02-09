@@ -20,24 +20,25 @@ from .api_youtube_dl import APIYoutubeDL
 class LogicNormal(object):
     @staticmethod
     def scheduler_function():
-        for i in ModelScheduler.get_list():
-            logger.debug('scheduler download %s', i.url)
-            info_dict = APIYoutubeDL.info_dict(package_name, i.url)['info_dict']
+        for scheduler in ModelScheduler.get_list():
+            logger.debug('scheduler download %s', scheduler.url)
+            info_dict = APIYoutubeDL.info_dict(package_name, scheduler.url)['info_dict']
             if info_dict is None or info_dict.get('_type') != 'playlist':
                 continue
-            ModelScheduler.find(i.id).update(len(info_dict['entries']))
-            archive = os.path.join(path_data, 'db', package_name, '%d.txt' % i.id)
-            date_after = i.date_after.strftime('%Y%m%d') if i.date_after else None
-            download = APIYoutubeDL.download(package_name, i.key, i.url, filename=i.filename, save_path=i.save_path,
-                                             format_code=i.format, preferredcodec='mp3' if i.convert_mp3 else None,
+            scheduler.update(len(info_dict['entries']))
+            archive = os.path.join(path_data, 'db', package_name, '%d.txt' % scheduler.id)
+            date_after = scheduler.date_after.strftime('%Y%m%d') if scheduler.date_after else None
+            download = APIYoutubeDL.download(package_name, scheduler.key, scheduler.url, filename=scheduler.filename,
+                                             save_path=scheduler.save_path, format_code=scheduler.format,
+                                             preferredcodec='mp3' if scheduler.convert_mp3 else None,
                                              dateafter=date_after, archive=archive, start=True)
             if download['errorCode'] == 0:
                 index = download['index']
                 while True:
                     time.sleep(10)  # 10초 대기
-                    download = APIYoutubeDL.status(package_name, index, i.key)
+                    download = APIYoutubeDL.status(package_name, index, scheduler.key)
                     if download['status'] == 'COMPLETED':
-                        ModelScheduler.find(i.id).update()
+                        scheduler.update()
                         break
                     elif download['status'] in ('ERROR', 'STOP'):
                         break
@@ -79,12 +80,12 @@ class LogicNormal(object):
 
     @staticmethod
     def get_scheduler():
-        ret = []
+        scheduler_list = []
         for i in ModelScheduler.get_list(True):
             i['last_time'] = i['last_time'].strftime('%m-%d %H:%M:%S')
             i['path'] = os.path.join(i['save_path'], i['filename'])
-            ret.append(i)
-        return ret
+            scheduler_list.append(i)
+        return scheduler_list
 
     @staticmethod
     def add_scheduler(form):

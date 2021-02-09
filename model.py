@@ -188,7 +188,7 @@ class ModelScheduler(db.Model):
         try:
             if data is None:
                 self.last_time = datetime.now()
-            elif str(type(data)) == "<type 'int'>":
+            elif isinstance(data, int):
                 self.count = data
             else:
                 if 'save_path' in data:

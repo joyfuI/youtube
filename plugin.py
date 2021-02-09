@@ -35,7 +35,7 @@ menu = {
 }
 
 plugin_info = {
-    'version': '1.0.1',
+    'version': '1.0.2',
     'name': 'youtube',
     'category_name': 'vod',
     'developer': 'joyfuI',
@@ -108,7 +108,7 @@ def ajax(sub):
         elif sub == 'scheduler':
             go = request.form['scheduler']
             logger.debug('scheduler:%s', go)
-            if go:
+            if go == 'true':
                 Logic.scheduler_start()
             else:
                 Logic.scheduler_stop()
