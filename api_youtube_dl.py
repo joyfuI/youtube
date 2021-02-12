@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-# 최종 업데이트 20210111
-#########################################################
+# 최종 업데이트 20210211
 # python
 from datetime import datetime
 
@@ -9,9 +8,9 @@ import requests
 
 # sjva 공용, 패키지
 from system.model import ModelSetting as SystemModelSetting
-#########################################################
 
 HOST_URL = 'http://localhost:%s' % SystemModelSetting.get('port')
+
 
 class APIYoutubeDL(object):
     ERROR_CODE = {

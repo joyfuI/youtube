@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-#########################################################
 # python
 import os
 import time
@@ -15,7 +14,7 @@ from .plugin import logger, package_name
 from .model import ModelScheduler
 from .logic_queue import LogicQueue
 from .api_youtube_dl import APIYoutubeDL
-#########################################################
+
 
 class LogicNormal(object):
     @staticmethod

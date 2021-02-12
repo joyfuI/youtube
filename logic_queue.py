@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-#########################################################
 # python
 import time
 import traceback
@@ -13,7 +12,7 @@ from threading import Thread
 from .plugin import package_name, logger
 from .model import ModelQueue
 from .api_youtube_dl import APIYoutubeDL
-#########################################################
+
 
 class LogicQueue(object):
     __thread = None
