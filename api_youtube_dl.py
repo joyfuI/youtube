@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# 최종 업데이트 20210211
+# 최종 업데이트 20210428
 # python
 from datetime import datetime
 
@@ -45,7 +45,8 @@ class APIYoutubeDL(object):
 
     @staticmethod
     def download(plugin, key, url, filename=None, save_path=None, format_code=None, preferedformat=None,
-                 preferredcodec=None, preferredquality=None, dateafter=None, archive=None, start=None, cookiefile=None):
+                 preferredcodec=None, preferredquality=None, dateafter=None, playlist=None, archive=None, start=None,
+                 cookiefile=None):
         data = {
             'plugin': plugin,
             'key': key,
@@ -65,6 +66,68 @@ class APIYoutubeDL(object):
             data['preferredquality'] = preferredquality
         if dateafter:
             data['dateafter'] = dateafter
+        if playlist:
+            data['playlist'] = playlist
+        if archive:
+            data['archive'] = archive
+        if start:
+            data['start'] = start
+        if cookiefile:
+            data['cookiefile'] = cookiefile
+        if SystemModelSetting.get_bool('auth_use_apikey'):  # APIKEY
+            data['apikey'] = SystemModelSetting.get('auth_apikey')
+        return requests.post('%s/youtube-dl/api/download' % HOST_URL, data=data).json()
+
+    @staticmethod
+    def thumbnail(plugin, key, url, filename=None, save_path=None, all_thumbnails=None, dateafter=None, playlist=None,
+                  archive=None, start=None, cookiefile=None):
+        data = {
+            'plugin': plugin,
+            'key': key,
+            'url': url
+        }
+        if filename:
+            data['filename'] = filename
+        if save_path:
+            data['save_path'] = save_path
+        if all_thumbnails:
+            data['all_thumbnails'] = all_thumbnails
+        if dateafter:
+            data['dateafter'] = dateafter
+        if playlist:
+            data['playlist'] = playlist
+        if archive:
+            data['archive'] = archive
+        if start:
+            data['start'] = start
+        if cookiefile:
+            data['cookiefile'] = cookiefile
+        if SystemModelSetting.get_bool('auth_use_apikey'):  # APIKEY
+            data['apikey'] = SystemModelSetting.get('auth_apikey')
+        return requests.post('%s/youtube-dl/api/download' % HOST_URL, data=data).json()
+
+    @staticmethod
+    def sub(plugin, key, url, filename=None, save_path=None, all_subs=None, sub_lang=None, auto_sub=None,
+            dateafter=None, playlist=None, archive=None, start=None, cookiefile=None):
+        data = {
+            'plugin': plugin,
+            'key': key,
+            'url': url
+        }
+        if filename:
+            data['filename'] = filename
+        if save_path:
+            data['save_path'] = save_path
+        if all_subs:
+            data['all_subs'] = all_subs
+        if sub_lang:
+            data['sub_lang'] = sub_lang
+        if auto_sub:
+            data['auto_sub'] = auto_sub
+        if dateafter:
+            data['dateafter'] = dateafter
+        if playlist:
+            data['playlist'] = playlist
         if archive:
             data['archive'] = archive
         if start:
