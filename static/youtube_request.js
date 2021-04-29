@@ -201,7 +201,7 @@ function click_analysis_btn(event) {
 
 function check_type(info_dict) {
     if (info_dict._type === 'playlist') {
-        if (info_dict.extractor_key === 'YoutubeTab' && info_dict.entries.length > 0 && info_dict.entries[0]._type === 'url') {
+        if (info_dict.extractor_key === 'YoutubeTab' && info_dict.entries.length > 0 && info_dict.entries[0].ie_key === null) {
             return 'channel';
         } else {
             return 'playlist';
@@ -317,7 +317,7 @@ function make_item_channel(data, index) {
     str += m_col(1, index);
     str += m_col(8, `<a href="${data.url}" target="_blank">${data.title}</a>`);
 
-    let tmp = `<button class="btn btn-sm btn-outline-success youtube-request" data-url="${url}">분석</button>`;
+    let tmp = `<button class="btn btn-sm btn-outline-success youtube-request" data-url="${data.url}">분석</button>`;
     str += m_col(3, tmp, 'right');
 
     str += m_row_end();
