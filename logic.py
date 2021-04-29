@@ -21,7 +21,7 @@ from .logic_normal import LogicNormal
 
 class Logic(object):
     db_default = {
-        'db_version': '3',
+        'db_version': '4',
         'interval': '360',
         'auto_start': 'False',
         'default_save_path': os.path.join(path_data, 'download', package_name),
@@ -153,6 +153,17 @@ class Logic(object):
                 cursor.execute("UPDATE youtube_scheduler SET date_after = ?", (None,))
                 cursor.execute("ALTER TABLE youtube_queue ADD date_after DATE")
                 cursor.execute("UPDATE youtube_queue SET date_after = ?", (None,))
+
+            if db_version < 4:
+                cursor = connect.cursor()
+                cursor.execute("ALTER TABLE youtube_scheduler ADD subtitle BOOLEAN")
+                cursor.execute("UPDATE youtube_scheduler SET subtitle = ?", (False,))
+                cursor.execute("ALTER TABLE youtube_queue ADD subtitle BOOLEAN")
+                cursor.execute("UPDATE youtube_queue SET subtitle = ?", (False,))
+                cursor.execute("ALTER TABLE youtube_scheduler ADD playlistreverse BOOLEAN")
+                cursor.execute("UPDATE youtube_scheduler SET playlistreverse = ?", (False,))
+                cursor.execute("ALTER TABLE youtube_queue ADD playlistreverse BOOLEAN")
+                cursor.execute("UPDATE youtube_queue SET playlistreverse = ?", (False,))
 
             connect.commit()
             connect.close()

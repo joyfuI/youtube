@@ -30,7 +30,9 @@ class LogicNormal(object):
             download = APIYoutubeDL.download(package_name, scheduler.key, scheduler.url, filename=scheduler.filename,
                                              save_path=scheduler.save_path, format_code=scheduler.format,
                                              preferredcodec='mp3' if scheduler.convert_mp3 else None,
-                                             dateafter=date_after, archive=archive, start=True)
+                                             dateafter=date_after,
+                                             playlist='reverse' if scheduler.playlistreverse else None, archive=archive,
+                                             start=True)
             if download['errorCode'] == 0:
                 index = download['index']
                 while True:
@@ -71,7 +73,9 @@ class LogicNormal(object):
             'filename': form['filename'],
             'format': form['format'],
             'convert_mp3': bool(form['convert_mp3']) if str(form['convert_mp3']).lower() != 'false' else False,
-            'date_after': date(year, month, day) if str(form['daterange']).lower() != 'false' else None
+            'date_after': date(year, month, day) if str(form['daterange']).lower() != 'false' else None,
+            'playlistreverse': bool(form['playlistreverse']) if str(
+                form['playlistreverse']).lower() != 'false' else False
         }
         for i in form.getlist('download[]'):
             LogicQueue.add_queue(i, options)
@@ -97,7 +101,9 @@ class LogicNormal(object):
                 'filename': form['filename'],
                 'format': form['format'],
                 'convert_mp3': bool(form['convert_mp3']) if str(form['convert_mp3']).lower() != 'false' else False,
-                'date_after': date(year, month, day) if str(form['daterange']).lower() != 'false' else None
+                'date_after': date(year, month, day) if str(form['daterange']).lower() != 'false' else None,
+                'playlistreverse': bool(form['playlistreverse']) if str(
+                    form['playlistreverse']).lower() != 'false' else False
             }
             ModelScheduler.find(form['db_id']).update(data)
         else:
@@ -114,7 +120,9 @@ class LogicNormal(object):
                 'filename': form['filename'],
                 'format': form['format'],
                 'convert_mp3': bool(form['convert_mp3']) if str(form['convert_mp3']).lower() != 'false' else False,
-                'date_after': date(year, month, day) if str(form['daterange']).lower() != 'false' else None
+                'date_after': date(year, month, day) if str(form['daterange']).lower() != 'false' else None,
+                'playlistreverse': bool(form['playlistreverse']) if str(
+                    form['playlistreverse']).lower() != 'false' else False
             }
             ModelScheduler.create(data)
         return LogicNormal.get_scheduler()

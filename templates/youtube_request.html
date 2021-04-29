@@ -32,6 +32,7 @@
                         <div id="daterange_div" class="collapse">
                             {{ macros.setting_input_text('date_after', '', value=arg['date_after'], placeholder='YYYY-MM-DD', type='date') }}
                         </div>
+                        {{ macros.setting_checkbox('playlistreverse', '역순으로 다운로드', value='False') }}
                     </form>
                 </div>
                 <div class="modal-footer">

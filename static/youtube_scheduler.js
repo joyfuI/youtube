@@ -33,6 +33,7 @@ add_btn.addEventListener('click', (event) => {
     modal_form.reset();
     $('#convert_mp3').bootstrapToggle('off');
     $('#daterange').bootstrapToggle('off');
+    $('#playlistreverse').bootstrapToggle('off');
     $('#schedule_modal').modal();
 });
 
@@ -53,6 +54,7 @@ list_div.addEventListener('click', (event) => {
         format.value = current_data[index].format;
         $('#convert_mp3').bootstrapToggle((current_data[index].convert_mp3) ? "on" : "off");
         $('#daterange').bootstrapToggle((current_data[index].date_after) ? "on" : "off");
+        $('#playlistreverse').bootstrapToggle((current_data[index].playlistreverse) ? "on" : "off");
         let date_after_data = current_data[index].date_after;
         if (date_after_data) {
             date_after_data = new Date(date_after_data);

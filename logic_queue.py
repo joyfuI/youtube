@@ -30,7 +30,8 @@ class LogicQueue(object):
                 date_after = i.date_after.strftime('%Y%m%d') if i.date_after else None
                 download = APIYoutubeDL.download(package_name, i.key, i.url, filename=i.filename, save_path=i.save_path,
                                                  format_code=i.format, preferredcodec='mp3' if i.convert_mp3 else None,
-                                                 dateafter=date_after, start=False)
+                                                 dateafter=date_after,
+                                                 playlist='reverse' if i.playlistreverse else None, start=False)
                 if download['errorCode'] == 0:
                     i.set_index(download['index'])
                 else:
@@ -73,7 +74,7 @@ class LogicQueue(object):
             download = APIYoutubeDL.download(package_name, entity.key, url, filename=entity.filename,
                                              save_path=entity.save_path, format_code=entity.format,
                                              preferredcodec='mp3' if entity.convert_mp3 else None, dateafter=date_after,
-                                             start=False)
+                                             playlist='reverse' if entity.playlistreverse else None, start=False)
             if download['errorCode'] == 0:
                 entity.set_index(download['index'])
             else:

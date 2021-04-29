@@ -130,6 +130,7 @@ class ModelScheduler(db.Model):
     format = db.Column(db.String, nullable=False)
     convert_mp3 = db.Column(db.Boolean, nullable=False)
     date_after = db.Column(db.Date)
+    playlistreverse = db.Column(db.Boolean, nullable=False)
     key = db.Column(db.String)
 
     def __init__(self, data):
@@ -144,6 +145,7 @@ class ModelScheduler(db.Model):
         self.format = data['format']
         self.convert_mp3 = data['convert_mp3']
         self.date_after = data['date_after']
+        self.playlistreverse = data['playlistreverse']
         self.key = ''.join([random.choice(string.ascii_lowercase) for _ in range(5)])
 
     def __repr__(self):
@@ -200,6 +202,8 @@ class ModelScheduler(db.Model):
                     self.convert_mp3 = data['convert_mp3']
                 if 'date_after' in data:
                     self.date_after = data['date_after']
+                if 'playlistreverse' in data:
+                    self.playlistreverse = data['playlistreverse']
             db.session.commit()
             return True
         except Exception as e:
@@ -231,6 +235,7 @@ class ModelQueue(db.Model):
     format = db.Column(db.String, nullable=False)
     convert_mp3 = db.Column(db.Boolean, nullable=False)
     date_after = db.Column(db.Date)
+    playlistreverse = db.Column(db.Boolean, nullable=False)
     key = db.Column(db.String)
     index = db.Column(db.Integer)
 
@@ -242,6 +247,7 @@ class ModelQueue(db.Model):
         self.format = data['format']
         self.convert_mp3 = data['convert_mp3']
         self.date_after = data['date_after']
+        self.playlistreverse = data['playlistreverse']
         self.key = ''.join([random.choice(string.ascii_lowercase) for _ in range(5)])
         self.index = None
 
