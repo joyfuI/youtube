@@ -194,8 +194,7 @@ function del_archive(event) {
         body: new URLSearchParams({
             id: event.data
         })
-    }).then(response => response.json()).then((data) => {
-        make_list(data);
+    }).then(() => {
         notify('삭제하였습니다.', 'success');
     }).catch(() => {
         notify('실패하였습니다.', 'danger');
