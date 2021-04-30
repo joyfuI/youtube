@@ -129,6 +129,7 @@ class ModelScheduler(db.Model):
     filename = db.Column(db.String, nullable=False)
     format = db.Column(db.String, nullable=False)
     convert_mp3 = db.Column(db.Boolean, nullable=False)
+    subtitle = db.Column(db.String)
     date_after = db.Column(db.Date)
     playlistreverse = db.Column(db.Boolean, nullable=False)
     key = db.Column(db.String)
@@ -144,6 +145,7 @@ class ModelScheduler(db.Model):
         self.filename = data['filename']
         self.format = data['format']
         self.convert_mp3 = data['convert_mp3']
+        self.subtitle = data['subtitle']
         self.date_after = data['date_after']
         self.playlistreverse = data['playlistreverse']
         self.key = ''.join([random.choice(string.ascii_lowercase) for _ in range(5)])
@@ -200,6 +202,8 @@ class ModelScheduler(db.Model):
                     self.format = data['format']
                 if 'convert_mp3' in data:
                     self.convert_mp3 = data['convert_mp3']
+                if 'subtitle' in data:
+                    self.subtitle = data['subtitle']
                 if 'date_after' in data:
                     self.date_after = data['date_after']
                 if 'playlistreverse' in data:
@@ -234,6 +238,7 @@ class ModelQueue(db.Model):
     filename = db.Column(db.String, nullable=False)
     format = db.Column(db.String, nullable=False)
     convert_mp3 = db.Column(db.Boolean, nullable=False)
+    subtitle = db.Column(db.String)
     date_after = db.Column(db.Date)
     playlistreverse = db.Column(db.Boolean, nullable=False)
     key = db.Column(db.String)
@@ -246,6 +251,7 @@ class ModelQueue(db.Model):
         self.filename = data['filename']
         self.format = data['format']
         self.convert_mp3 = data['convert_mp3']
+        self.subtitle = data['subtitle']
         self.date_after = data['date_after']
         self.playlistreverse = data['playlistreverse']
         self.key = ''.join([random.choice(string.ascii_lowercase) for _ in range(5)])

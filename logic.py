@@ -156,10 +156,10 @@ class Logic(object):
 
             if db_version < 4:
                 cursor = connect.cursor()
-                cursor.execute("ALTER TABLE youtube_scheduler ADD subtitle BOOLEAN")
-                cursor.execute("UPDATE youtube_scheduler SET subtitle = ?", (False,))
-                cursor.execute("ALTER TABLE youtube_queue ADD subtitle BOOLEAN")
-                cursor.execute("UPDATE youtube_queue SET subtitle = ?", (False,))
+                cursor.execute("ALTER TABLE youtube_scheduler ADD subtitle VARCHAR")
+                cursor.execute("UPDATE youtube_scheduler SET subtitle = ?", (None,))
+                cursor.execute("ALTER TABLE youtube_queue ADD subtitle VARCHAR")
+                cursor.execute("UPDATE youtube_queue SET subtitle = ?", (None,))
                 cursor.execute("ALTER TABLE youtube_scheduler ADD playlistreverse BOOLEAN")
                 cursor.execute("UPDATE youtube_scheduler SET playlistreverse = ?", (False,))
                 cursor.execute("ALTER TABLE youtube_queue ADD playlistreverse BOOLEAN")

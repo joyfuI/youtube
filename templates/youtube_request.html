@@ -28,6 +28,10 @@
                         {{ macros.setting_input_text('filename', '파일명', value=arg['filename'], desc='템플릿 규칙은 https://github.com/ytdl-org/youtube-dl/blob/master/README.md#output-template 참고') }}
                         {{ macros.setting_select('format', '동영상 포맷', arg['preset_list'], col='4') }}
                         {{ macros.setting_checkbox('convert_mp3', 'mp3 변환', value='False') }}
+                        {{ macros.setting_checkbox('sub', '자막 다운로드', value='False', desc='자막도 함께 다운로드') }}
+                        <div id="subtitle_div" class="collapse">
+                            {{ macros.setting_input_text('subtitle', '', value='ko', desc='두 자리 국가 코드. 콤마(,)를 구분자로 여러 개 지정 가능') }}
+                        </div>
                         {{ macros.setting_checkbox('daterange', '날짜 지정', value='False', desc='지정한 날짜 이후에 업로드된 동영상만 다운로드') }}
                         <div id="daterange_div" class="collapse">
                             {{ macros.setting_input_text('date_after', '', value=arg['date_after'], placeholder='YYYY-MM-DD', type='date') }}

@@ -9,6 +9,7 @@ const save_path = document.getElementById('save_path');
 const filename = document.getElementById('filename');
 const format = document.getElementById('format');
 const convert_mp3 = document.getElementById('convert_mp3');
+const subtitle = document.getElementById('subtitle');
 const date_after = document.getElementById('date_after');
 const schedule_modal_save_btn = document.getElementById('schedule_modal_save_btn');
 const confirm_title = document.getElementById('confirm_title');
@@ -32,6 +33,7 @@ add_btn.addEventListener('click', (event) => {
     url.disabled = false;
     modal_form.reset();
     $('#convert_mp3').bootstrapToggle('off');
+    $('#sub').bootstrapToggle('off');
     $('#daterange').bootstrapToggle('off');
     $('#playlistreverse').bootstrapToggle('off');
     $('#schedule_modal').modal();
@@ -53,8 +55,12 @@ list_div.addEventListener('click', (event) => {
         filename.value = current_data[index].filename;
         format.value = current_data[index].format;
         $('#convert_mp3').bootstrapToggle((current_data[index].convert_mp3) ? "on" : "off");
+        $('#sub').bootstrapToggle((current_data[index].subtitle) ? "on" : "off");
         $('#daterange').bootstrapToggle((current_data[index].date_after) ? "on" : "off");
         $('#playlistreverse').bootstrapToggle((current_data[index].playlistreverse) ? "on" : "off");
+        if (current_data[index].subtitle) {
+            subtitle.value = current_data[index].subtitle;
+        }
         let date_after_data = current_data[index].date_after;
         if (date_after_data) {
             date_after_data = new Date(date_after_data);
@@ -85,6 +91,11 @@ $('#convert_mp3').change(() => {
     if (convert_mp3.checked) {
         format.value = 'bestaudio/best';
     }
+});
+
+// 자막 다운로드
+$('#sub').change(() => {
+    use_collapse('sub');
 });
 
 // 날짜 지정

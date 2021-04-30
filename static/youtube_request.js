@@ -96,6 +96,11 @@ $('#convert_mp3').change(() => {
     }
 });
 
+// 자막 다운로드
+$('#sub').change(() => {
+    use_collapse('sub');
+});
+
 // 날짜 지정
 $('#daterange').change(() => {
     use_collapse('daterange');

@@ -32,10 +32,16 @@ class LogicQueue(object):
                                                  format_code=i.format, preferredcodec='mp3' if i.convert_mp3 else None,
                                                  dateafter=date_after,
                                                  playlist='reverse' if i.playlistreverse else None, start=False)
-                if download['errorCode'] == 0:
+                if i.subtitle is not None:
+                    sub = APIYoutubeDL.sub(package_name, i.key, i.url, filename=i.filename, save_path=i.save_path,
+                                           all_subs=False, sub_lang=i.subtitle, auto_sub=True, dateafter=date_after,
+                                           playlist='reverse' if i.playlistreverse else None, start=True)
+                else:
+                    sub = 0
+                if download['errorCode'] == 0 and sub['errorCode'] == 0:
                     i.set_index(download['index'])
                 else:
-                    logger.debug('queue add fail %s', download['errorCode'])
+                    logger.debug('queue add fail %s %s', download['errorCode'], sub['errorCode'])
                     i.delete()
 
             LogicQueue.__thread = Thread(target=LogicQueue.thread_function)
@@ -75,10 +81,17 @@ class LogicQueue(object):
                                              save_path=entity.save_path, format_code=entity.format,
                                              preferredcodec='mp3' if entity.convert_mp3 else None, dateafter=date_after,
                                              playlist='reverse' if entity.playlistreverse else None, start=False)
-            if download['errorCode'] == 0:
+            if entity.subtitle is not None:
+                sub = APIYoutubeDL.sub(package_name, entity.key, url, filename=entity.filename,
+                                       save_path=entity.save_path, all_subs=False, sub_lang=entity.subtitle,
+                                       auto_sub=True, dateafter=date_after,
+                                       playlist='reverse' if entity.playlistreverse else None, start=True)
+            else:
+                sub = 0
+            if download['errorCode'] == 0 and sub['errorCode'] == 0:
                 entity.set_index(download['index'])
             else:
-                logger.debug('queue add fail %d', download['errorCode'])
+                logger.debug('queue add fail %s %s', download['errorCode'], sub['errorCode'])
                 entity.delete()
                 return None
 
