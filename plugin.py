@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-#########################################################
 # python
 import os
 import traceback
@@ -24,7 +23,9 @@ from .model import ModelSetting
 #########################################################
 # 플러그인 공용
 #########################################################
-blueprint = Blueprint(package_name, package_name, url_prefix='/%s' % package_name, template_folder=os.path.join(os.path.dirname(__file__), 'templates'))
+blueprint = Blueprint(package_name, package_name, url_prefix='/%s' % package_name,
+                      template_folder=os.path.join(os.path.dirname(__file__), 'templates'),
+                      static_folder=os.path.join(os.path.dirname(__file__), 'static'))
 
 menu = {
     'main': [package_name, '유튜브'],
@@ -35,7 +36,7 @@ menu = {
 }
 
 plugin_info = {
-    'version': '1.0.2',
+    'version': '1.1.0',
     'name': 'youtube',
     'category_name': 'vod',
     'developer': 'joyfuI',
@@ -44,12 +45,15 @@ plugin_info = {
     'more': ''
 }
 
+
 def plugin_load():
     Logic.plugin_load()
     LogicQueue.queue_load()
 
+
 def plugin_unload():
     Logic.plugin_unload()
+
 
 #########################################################
 # WEB Menu
@@ -58,11 +62,15 @@ def plugin_unload():
 def home():
     return redirect('/%s/request' % package_name)
 
+
 @blueprint.route('/<sub>')
 @login_required
 def first_menu(sub):
     try:
-        arg = {'package_name': package_name}
+        arg = {
+            'package_name': package_name,
+            'template_name': '%s_%s' % (package_name, sub)
+        }
 
         if sub == 'setting':
             arg.update(ModelSetting.to_dict())
@@ -91,6 +99,7 @@ def first_menu(sub):
         logger.error('Exception:%s', e)
         logger.error(traceback.format_exc())
     return render_template('sample.html', title='%s - %s' % (package_name, sub))
+
 
 #########################################################
 # For UI
@@ -150,6 +159,7 @@ def ajax(sub):
     except Exception as e:
         logger.error('Exception:%s', e)
         logger.error(traceback.format_exc())
+
 
 #########################################################
 # socketio
