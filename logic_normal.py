@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # python
 import os
+import shutil
 import time
 from datetime import date
 
@@ -27,6 +28,9 @@ class LogicNormal(object):
             scheduler.update(len(info_dict['entries']))
             archive = os.path.join(path_data, 'db', package_name, '%d.txt' % scheduler.id)
             date_after = scheduler.date_after.strftime('%Y%m%d') if scheduler.date_after else None
+            if scheduler.subtitle is not None:
+                archive_sub = os.path.join(path_data, 'db', package_name, '%d_sub.txt' % scheduler.id)
+                shutil.copy(archive, archive_sub)
             download = APIYoutubeDL.download(package_name, scheduler.key, scheduler.url, filename=scheduler.filename,
                                              save_path=scheduler.save_path, format_code=scheduler.format,
                                              preferredcodec='mp3' if scheduler.convert_mp3 else None,
@@ -37,7 +41,7 @@ class LogicNormal(object):
                 sub = APIYoutubeDL.sub(package_name, scheduler.key, scheduler.url, filename=scheduler.filename,
                                        save_path=scheduler.save_path, all_subs=False, sub_lang=scheduler.subtitle,
                                        auto_sub=True, dateafter=date_after,
-                                       playlist='reverse' if scheduler.playlistreverse else None, archive=archive,
+                                       playlist='reverse' if scheduler.playlistreverse else None, archive=archive_sub,
                                        start=True)
             else:
                 sub = 0
@@ -148,6 +152,9 @@ class LogicNormal(object):
     @staticmethod
     def del_archive(db_id):
         archive = os.path.join(path_data, 'db', package_name, '%s.txt' % db_id)
+        archive_sub = os.path.join(path_data, 'db', package_name, '%s_sub.txt' % db_id)
         logger.debug('delete %s', archive)
         if os.path.isfile(archive):
             os.remove(archive)
+        if os.path.isfile(archive_sub):
+            os.remove(archive_sub)
