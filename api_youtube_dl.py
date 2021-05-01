@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# 최종 업데이트 20210428
+# 최종 업데이트 20210501
 # python
 from datetime import datetime
 
@@ -104,7 +104,7 @@ class APIYoutubeDL(object):
             data['cookiefile'] = cookiefile
         if SystemModelSetting.get_bool('auth_use_apikey'):  # APIKEY
             data['apikey'] = SystemModelSetting.get('auth_apikey')
-        return requests.post('%s/youtube-dl/api/download' % HOST_URL, data=data).json()
+        return requests.post('%s/youtube-dl/api/thumbnail' % HOST_URL, data=data).json()
 
     @staticmethod
     def sub(plugin, key, url, filename=None, save_path=None, all_subs=None, sub_lang=None, auto_sub=None,
@@ -136,7 +136,7 @@ class APIYoutubeDL(object):
             data['cookiefile'] = cookiefile
         if SystemModelSetting.get_bool('auth_use_apikey'):  # APIKEY
             data['apikey'] = SystemModelSetting.get('auth_apikey')
-        return requests.post('%s/youtube-dl/api/download' % HOST_URL, data=data).json()
+        return requests.post('%s/youtube-dl/api/sub' % HOST_URL, data=data).json()
 
     @staticmethod
     def start(plugin, index, key):
