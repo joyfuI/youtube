@@ -81,7 +81,7 @@ class LogicNormal(object):
             'filename': form['filename'],
             'format': form['format'],
             'convert_mp3': bool(form['convert_mp3']) if str(form['convert_mp3']).lower() != 'false' else False,
-            'subtitle': form['subtitle'],
+            'subtitle': form['subtitle'] if str(form['sub']).lower() != 'false' else None,
             'date_after': date(year, month, day) if str(form['daterange']).lower() != 'false' else None,
             'playlistreverse': bool(form['playlistreverse']) if str(
                 form['playlistreverse']).lower() != 'false' else False
@@ -110,7 +110,7 @@ class LogicNormal(object):
                 'filename': form['filename'],
                 'format': form['format'],
                 'convert_mp3': bool(form['convert_mp3']) if str(form['convert_mp3']).lower() != 'false' else False,
-                'subtitle': form['subtitle'],
+                'subtitle': form['subtitle'] if str(form['sub']).lower() != 'false' else None,
                 'date_after': date(year, month, day) if str(form['daterange']).lower() != 'false' else None,
                 'playlistreverse': bool(form['playlistreverse']) if str(
                     form['playlistreverse']).lower() != 'false' else False
@@ -130,7 +130,7 @@ class LogicNormal(object):
                 'filename': form['filename'],
                 'format': form['format'],
                 'convert_mp3': bool(form['convert_mp3']) if str(form['convert_mp3']).lower() != 'false' else False,
-                'subtitle': form['subtitle'],
+                'subtitle': form['subtitle'] if str(form['sub']).lower() != 'false' else None,
                 'date_after': date(year, month, day) if str(form['daterange']).lower() != 'false' else None,
                 'playlistreverse': bool(form['playlistreverse']) if str(
                     form['playlistreverse']).lower() != 'false' else False
