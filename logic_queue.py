@@ -1,17 +1,14 @@
-# -*- coding: utf-8 -*-
-# python
-import time
 import traceback
+import time
 from threading import Thread
 
-# third-party
+from framework.logger import get_logger
 
-# sjva 공용
-
-# 패키지
-from .plugin import package_name, logger
 from .model import ModelQueue
 from .api_youtube_dl import APIYoutubeDL
+
+package_name = __name__.split('.')[0]
+logger = get_logger(package_name)
 
 
 class LogicQueue(object):
