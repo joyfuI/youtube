@@ -41,7 +41,7 @@ class LogicNormal(object):
                                        playlist='reverse' if scheduler.playlistreverse else None, archive=archive_sub,
                                        start=True)
             else:
-                sub = 0
+                sub = {'errorCode': 0}
             if download['errorCode'] == 0 and sub['errorCode'] == 0:
                 index = download['index']
                 while True:

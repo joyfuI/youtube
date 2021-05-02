@@ -34,7 +34,7 @@ class LogicQueue(object):
                                            all_subs=False, sub_lang=i.subtitle, auto_sub=True, dateafter=date_after,
                                            playlist='reverse' if i.playlistreverse else None, start=True)
                 else:
-                    sub = 0
+                    sub = {'errorCode': 0}
                 if download['errorCode'] == 0 and sub['errorCode'] == 0:
                     i.set_index(download['index'])
                 else:
@@ -84,7 +84,7 @@ class LogicQueue(object):
                                        auto_sub=True, dateafter=date_after,
                                        playlist='reverse' if entity.playlistreverse else None, start=True)
             else:
-                sub = 0
+                sub = {'errorCode': 0}
             if download['errorCode'] == 0 and sub['errorCode'] == 0:
                 entity.set_index(download['index'])
             else:
