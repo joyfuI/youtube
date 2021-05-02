@@ -1,20 +1,17 @@
-# -*- coding: utf-8 -*-
-# python
 import os
 import shutil
 import time
 from datetime import date
 
-# third-party
-
-# sjva 공용
 from framework import path_data
+from framework.logger import get_logger
 
-# 패키지
-from .plugin import logger, package_name
 from .model import ModelScheduler
 from .logic_queue import LogicQueue
 from .api_youtube_dl import APIYoutubeDL
+
+package_name = __name__.split('.')[0]
+logger = get_logger(package_name)
 
 
 class LogicNormal(object):
