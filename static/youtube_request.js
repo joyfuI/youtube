@@ -2,7 +2,6 @@
 
 const url = document.getElementById('url');
 const analysis_btn = document.getElementById('analysis_btn');
-const go_btn = document.getElementById('go_btn');
 const content_div = document.getElementById('content_div');
 const button_div = document.getElementById('button_div');
 const detail_div = document.getElementById('detail_div');
@@ -15,13 +14,6 @@ const convert_mp3 = document.getElementById('convert_mp3');
 const youtube_modal_save_btn = document.getElementById('youtube_modal_save_btn');
 
 analysis_btn.addEventListener('click', click_analysis_btn);
-
-go_btn.addEventListener('click', (event) => {
-    event.preventDefault();
-    if (url.value.startsWith('http')) {
-        open(url.value, '_blank');
-    }
-});
 
 content_div.addEventListener('click', (event) => {
     event.preventDefault();
