@@ -12,7 +12,7 @@ logger = get_logger(package_name)
 
 
 class LogicQueue(object):
-    __thread = None
+    _thread = None
 
     @staticmethod
     def queue_load():
@@ -41,9 +41,9 @@ class LogicQueue(object):
                     logger.debug('queue add fail %s %s', download['errorCode'], sub['errorCode'])
                     i.delete()
 
-            LogicQueue.__thread = Thread(target=LogicQueue.thread_function)
-            LogicQueue.__thread.daemon = True
-            LogicQueue.__thread.start()
+            LogicQueue._thread = Thread(target=LogicQueue.thread_function)
+            LogicQueue._thread.daemon = True
+            LogicQueue._thread.start()
         except Exception as e:
             logger.error('Exception:%s', e)
             logger.error(traceback.format_exc())
@@ -92,10 +92,10 @@ class LogicQueue(object):
                 entity.delete()
                 return None
 
-            if not LogicQueue.__thread.is_alive():
-                LogicQueue.__thread = Thread(target=LogicQueue.thread_function)
-                LogicQueue.__thread.daemon = True
-                LogicQueue.__thread.start()
+            if not LogicQueue._thread.is_alive():
+                LogicQueue._thread = Thread(target=LogicQueue.thread_function)
+                LogicQueue._thread.daemon = True
+                LogicQueue._thread.start()
             return entity
         except Exception as e:
             logger.error('Exception:%s', e)
