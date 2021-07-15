@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 import shutil
 import time
 from datetime import date
@@ -24,6 +25,7 @@ class LogicNormal(object):
                 continue
             scheduler.update(len(info_dict['entries']))
             archive = os.path.join(path_data, 'db', package_name, '%d.txt' % scheduler.id)
+            Path(archive).touch()
             date_after = scheduler.date_after.strftime('%Y%m%d') if scheduler.date_after else None
             if scheduler.subtitle is not None:
                 archive_sub = os.path.join(path_data, 'db', package_name, '%d_sub.txt' % scheduler.id)

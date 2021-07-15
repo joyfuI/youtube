@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 
-    {{ macros.setting_input_text_and_buttons('url', 'URL', [['analysis_btn', '분석'], ['go_btn', 'Go']], value=arg['url'], desc=['유튜브 동영상 또는 채널, 플레이리스트 주소', '다른 동영상 사이트도 지원']) }}
+    {{ macros.setting_input_text_and_buttons('url', 'URL', [['analysis_btn', '분석']], value=arg['url'], desc=['유튜브 동영상 또는 채널, 플레이리스트 주소', '다른 동영상 사이트도 지원']) }}
     <div id="content_div">
         <div id="button_div"></div>
         <div id="detail_div"></div>
@@ -21,9 +21,9 @@
                 </div>
                 <div class="modal-body">
                     <input id="modal_type" type="hidden" value="0">
-                    {{ macros.setting_input_textarea('video_urls', 'URL', value='', disabled=True) }}
                     <form id="modal_form">
                         <input id="db_id" name="db_id" type="hidden" value="">
+                        {{ macros.setting_input_textarea('video_urls', 'URL', value='', disabled=True) }}
                         {{ macros.setting_input_text('save_path', '저장 폴더', value=arg['save_path'], placeholder='저장 폴더 경로', desc='템플릿 규칙 사용 불가. 폴더명에 템플릿 규칙을 사용하려면 저장 폴더엔 상위 폴더 경로를 지정하고 파일명에 하위 경로를 추가해주세요.') }}
                         {{ macros.setting_input_text('filename', '파일명', value=arg['filename'], desc='템플릿 규칙은 https://github.com/ytdl-org/youtube-dl/blob/master/README.md#output-template 참고') }}
                         {{ macros.setting_select('format', '동영상 포맷', arg['preset_list'], col='4') }}
