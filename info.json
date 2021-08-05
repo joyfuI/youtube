@@ -1,9 +1,10 @@
 {
-    "version": "2.0.2",
+    "version": "2.1.0",
     "name": "youtube",
     "category_name": "vod",
     "developer": "joyfuI",
     "description": "YouTube 다운로드",
     "home": "https://github.com/joyfuI/youtube",
-    "more": ""
+    "more": "",
+    "category": "vod"
 }

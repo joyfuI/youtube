@@ -7,7 +7,7 @@ from datetime import date
 from framework import path_data
 from framework.logger import get_logger
 
-from .model import ModelScheduler
+from .model import ModelSetting, ModelScheduler
 from .logic_queue import LogicQueue
 from .api_youtube_dl import APIYoutubeDL
 
@@ -35,13 +35,13 @@ class LogicNormal(object):
                                              preferredcodec='mp3' if scheduler.convert_mp3 else None,
                                              dateafter=date_after,
                                              playlist='reverse' if scheduler.playlistreverse else None, archive=archive,
-                                             start=True)
+                                             start=True, cookiefile=ModelSetting.get('cookiefile_path'))
             if scheduler.subtitle is not None:
                 sub = APIYoutubeDL.sub(package_name, scheduler.key, scheduler.url, filename=scheduler.filename,
                                        save_path=scheduler.save_path, all_subs=False, sub_lang=scheduler.subtitle,
                                        auto_sub=True, dateafter=date_after,
                                        playlist='reverse' if scheduler.playlistreverse else None, archive=archive_sub,
-                                       start=True)
+                                       start=True, cookiefile=ModelSetting.get('cookiefile_path'))
             else:
                 sub = {'errorCode': 0}
             if download['errorCode'] == 0 and sub['errorCode'] == 0:

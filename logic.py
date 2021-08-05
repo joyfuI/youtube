@@ -22,7 +22,8 @@ class Logic(object):
         'interval': '360',
         'auto_start': 'False',
         'default_save_path': os.path.join(path_data, 'download', package_name),
-        'default_filename': '%(title)s-%(id)s.%(ext)s'
+        'default_filename': '%(title)s-%(id)s.%(ext)s',
+        'cookiefile_path': ''
     }
 
     @staticmethod
