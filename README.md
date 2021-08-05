@@ -26,7 +26,13 @@ youtube-dl에서 지원하는 사이트라면 모두 지원합니다만 사이�
 일단 알려진 문제점으로 V LIVE 채널 주소를 넣었을 때 목록의 영상 이름이 `undefined`로 뜨는 문제가 있습니다.  
 이건 youtube-dl에서 `title` 값을 반환해주지 않아서 어쩔 수 없습니다. 그렇다고 빈칸으로 둘 수도 없는 노릇이라 그냥 그대로 `undefined`(...)를 출력합니다.
 
+cookiefile 경로를 지정하면 가입이 필요한 영상도 다운로드 할 수 있습니다.  
+cookiefile 추출 방법은 [여기](https://github.com/ytdl-org/youtube-dl#how-do-i-pass-cookies-to-youtube-dl)를 참고해주세요.
+
 ## Changelog
+v2.1.0
+* 설정에 cookiefile 경로 지정 추가
+
 v2.0.2
 * 스케줄러에서 자막 다운로드 켰을 때 첫 다운로드가 안되는 오류 수정
 

@@ -4,7 +4,7 @@ from threading import Thread
 
 from framework.logger import get_logger
 
-from .model import ModelQueue
+from .model import ModelSetting, ModelQueue
 from .api_youtube_dl import APIYoutubeDL
 
 package_name = __name__.split('.')[0]
@@ -28,11 +28,13 @@ class LogicQueue(object):
                 download = APIYoutubeDL.download(package_name, i.key, i.url, filename=i.filename, save_path=i.save_path,
                                                  format_code=i.format, preferredcodec='mp3' if i.convert_mp3 else None,
                                                  dateafter=date_after,
-                                                 playlist='reverse' if i.playlistreverse else None, start=False)
+                                                 playlist='reverse' if i.playlistreverse else None, start=False,
+                                                 cookiefile=ModelSetting.get('cookiefile_path'))
                 if i.subtitle is not None:
                     sub = APIYoutubeDL.sub(package_name, i.key, i.url, filename=i.filename, save_path=i.save_path,
                                            all_subs=False, sub_lang=i.subtitle, auto_sub=True, dateafter=date_after,
-                                           playlist='reverse' if i.playlistreverse else None, start=True)
+                                           playlist='reverse' if i.playlistreverse else None, start=True,
+                                           cookiefile=ModelSetting.get('cookiefile_path'))
                 else:
                     sub = {'errorCode': 0}
                 if download['errorCode'] == 0 and sub['errorCode'] == 0:
@@ -77,12 +79,14 @@ class LogicQueue(object):
             download = APIYoutubeDL.download(package_name, entity.key, url, filename=entity.filename,
                                              save_path=entity.save_path, format_code=entity.format,
                                              preferredcodec='mp3' if entity.convert_mp3 else None, dateafter=date_after,
-                                             playlist='reverse' if entity.playlistreverse else None, start=False)
+                                             playlist='reverse' if entity.playlistreverse else None, start=False,
+                                             cookiefile=ModelSetting.get('cookiefile_path'))
             if entity.subtitle is not None:
                 sub = APIYoutubeDL.sub(package_name, entity.key, url, filename=entity.filename,
                                        save_path=entity.save_path, all_subs=False, sub_lang=entity.subtitle,
                                        auto_sub=True, dateafter=date_after,
-                                       playlist='reverse' if entity.playlistreverse else None, start=True)
+                                       playlist='reverse' if entity.playlistreverse else None, start=True,
+                                       cookiefile=ModelSetting.get('cookiefile_path'))
             else:
                 sub = {'errorCode': 0}
             if download['errorCode'] == 0 and sub['errorCode'] == 0:
