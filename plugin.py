@@ -13,32 +13,34 @@ from .logic_normal import LogicNormal
 from .logic_queue import LogicQueue
 from .model import ModelSetting
 
-package_name = __name__.split('.')[0]
+package_name = __name__.split(".", maxsplit=1)[0]
 logger = get_logger(package_name)
 
 #########################################################
 # 플러그인 공용
 #########################################################
-blueprint = Blueprint(package_name, package_name, url_prefix='/%s' % package_name,
-                      template_folder=os.path.join(os.path.dirname(__file__), 'templates'),
-                      static_folder=os.path.join(os.path.dirname(__file__), 'static'))
+blueprint = Blueprint(
+    package_name,
+    package_name,
+    url_prefix=f"/{package_name}",
+    template_folder=os.path.join(os.path.dirname(__file__), "templates"),
+    static_folder=os.path.join(os.path.dirname(__file__), "static"),
+)
 
 menu = {
-    'main': [package_name, '유튜브'],
-    'sub': [
-        ['setting', '설정'], ['request', '요청'], ['scheduler', '스케줄링'], ['log', '로그']
-    ],
-    'category': 'vod'
+    "main": [package_name, "유튜브"],
+    "sub": [["setting", "설정"], ["request", "요청"], ["scheduler", "스케줄링"], ["log", "로그"]],
+    "category": "vod",
 }
 
 plugin_info = {
-    'version': '2.1.0',
-    'name': 'youtube',
-    'category_name': 'vod',
-    'developer': 'joyfuI',
-    'description': 'YouTube 다운로드',
-    'home': 'https://github.com/joyfuI/youtube',
-    'more': ''
+    "version": "2.1.0",
+    "name": "youtube",
+    "category_name": "vod",
+    "developer": "joyfuI",
+    "description": "YouTube 다운로드",
+    "home": "https://github.com/joyfuI/youtube",
+    "more": "",
 }
 
 
@@ -54,106 +56,106 @@ def plugin_unload():
 #########################################################
 # WEB Menu
 #########################################################
-@blueprint.route('/')
+@blueprint.route("/")
 def home():
-    return redirect('/%s/request' % package_name)
+    return redirect(f"/{package_name}/request")
 
 
-@blueprint.route('/<sub>')
+@blueprint.route("/<sub>")
 @login_required
 def first_menu(sub):
     try:
         arg = {
-            'package_name': package_name,
-            'template_name': '%s_%s' % (package_name, sub)
+            "package_name": package_name,
+            "template_name": f"{package_name}_{sub}",
         }
 
-        if sub == 'setting':
+        if sub == "setting":
             arg.update(ModelSetting.to_dict())
-            arg['scheduler'] = str(scheduler.is_include(package_name))
-            arg['is_running'] = str(scheduler.is_running(package_name))
-            return render_template('%s_%s.html' % (package_name, sub), arg=arg)
+            arg["scheduler"] = str(scheduler.is_include(package_name))
+            arg["is_running"] = str(scheduler.is_running(package_name))
+            return render_template(f"{package_name}_{sub}.html", arg=arg)
 
-        elif sub == 'request':
-            arg['url'] = request.args.get('url', '')
-            arg['save_path'] = ModelSetting.get('default_save_path')
-            arg['filename'] = ModelSetting.get('default_filename')
-            arg['preset_list'] = LogicNormal.get_preset_list()
-            arg['date_after'] = date.today()
-            return render_template('%s_%s.html' % (package_name, sub), arg=arg)
+        elif sub == "request":
+            arg["url"] = request.args.get("url", "")
+            arg["save_path"] = ModelSetting.get("default_save_path")
+            arg["filename"] = ModelSetting.get("default_filename")
+            arg["preset_list"] = LogicNormal.get_preset_list()
+            arg["date_after"] = date.today()
+            return render_template(f"{package_name}_{sub}.html", arg=arg)
 
-        elif sub == 'scheduler':
-            arg['save_path'] = ModelSetting.get('default_save_path')
-            arg['filename'] = ModelSetting.get('default_filename')
-            arg['preset_list'] = LogicNormal.get_preset_list()
-            arg['date_after'] = date.today()
-            return render_template('%s_%s.html' % (package_name, sub), arg=arg)
+        elif sub == "scheduler":
+            arg["save_path"] = ModelSetting.get("default_save_path")
+            arg["filename"] = ModelSetting.get("default_filename")
+            arg["preset_list"] = LogicNormal.get_preset_list()
+            arg["date_after"] = date.today()
+            return render_template(f"{package_name}_{sub}.html", arg=arg)
 
-        elif sub == 'log':
-            return render_template('log.html', package=package_name)
+        elif sub == "log":
+            return render_template("log.html", package=package_name)
     except Exception as e:
-        logger.error('Exception:%s', e)
+        logger.error("Exception:%s", e)
         logger.error(traceback.format_exc())
-    return render_template('sample.html', title='%s - %s' % (package_name, sub))
+    return render_template("sample.html", title=f"{package_name} - {sub}")
 
 
 #########################################################
 # For UI
 #########################################################
-@blueprint.route('/ajax/<sub>', methods=['POST'])
+@blueprint.route("/ajax/<sub>", methods=["POST"])
 @login_required
 def ajax(sub):
-    logger.debug('AJAX %s %s', package_name, sub)
+    logger.debug("AJAX %s %s", package_name, sub)
     try:
         # 공통 요청
-        if sub == 'setting_save':
+        if sub == "setting_save":
             ret = ModelSetting.setting_save(request)
             return jsonify(ret)
 
-        elif sub == 'scheduler':
-            go = request.form['scheduler']
-            logger.debug('scheduler:%s', go)
-            if go == 'true':
+        elif sub == "scheduler":
+            go = request.form["scheduler"]
+            logger.debug("scheduler:%s", go)
+            if go == "true":
                 Logic.scheduler_start()
             else:
                 Logic.scheduler_stop()
             return jsonify(go)
 
-        elif sub == 'one_execute':
+        elif sub == "one_execute":
             ret = Logic.one_execute()
             return jsonify(ret)
 
-        elif sub == 'reset_db':
+        elif sub == "reset_db":
             ret = Logic.reset_db()
             return jsonify(ret)
 
         # UI 요청
-        elif sub == 'analysis':
-            url = request.form['url']
+        elif sub == "analysis":
+            url = request.form["url"]
             ret = LogicNormal.analysis(url)
             return jsonify(ret)
 
-        elif sub == 'add_download':
+        elif sub == "add_download":
             ret = LogicNormal.download(request.form)
             return jsonify(ret)
 
-        elif sub == 'list_scheduler':
+        elif sub == "list_scheduler":
             ret = LogicNormal.get_scheduler()
             return jsonify(ret)
 
-        elif sub == 'add_scheduler':
+        elif sub == "add_scheduler":
             ret = LogicNormal.add_scheduler(request.form)
             return jsonify(ret)
 
-        elif sub == 'del_scheduler':
-            ret = LogicNormal.del_scheduler(request.form['id'])
+        elif sub == "del_scheduler":
+            ret = LogicNormal.del_scheduler(request.form["id"])
             return jsonify(ret)
 
-        elif sub == 'del_archive':
-            LogicNormal.del_archive(request.form['id'])
+        elif sub == "del_archive":
+            LogicNormal.del_archive(request.form["id"])
             return jsonify([])
     except Exception as e:
-        logger.error('Exception:%s', e)
+        logger.error("Exception:%s", e)
         logger.error(traceback.format_exc())
 
 
@@ -161,4 +163,4 @@ def ajax(sub):
 # socketio
 #########################################################
 def socketio_emit(cmd, data):
-    socketio.emit(cmd, data, namespace='/%s' % package_name, broadcast=True)
+    socketio.emit(cmd, data, namespace=f"/{package_name}", broadcast=True)

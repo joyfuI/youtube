@@ -1,56 +1,86 @@
-{% extends "base.html" %}
-{% block content %}
+{% extends "base.html" %} {% block content %} {{
+macros.setting_input_text_and_buttons('url', 'URL', [['analysis_btn', '분석']],
+value=arg['url'], desc=['유튜브 동영상 또는 채널, 플레이리스트 주소', '다른
+동영상 사이트도 지원']) }}
+<div id="content_div">
+  <div id="button_div"></div>
+  <div id="detail_div"></div>
+  <div id="list_div"></div>
+</div>
 
-    {{ macros.setting_input_text_and_buttons('url', 'URL', [['analysis_btn', '분석']], value=arg['url'], desc=['유튜브 동영상 또는 채널, 플레이리스트 주소', '다른 동영상 사이트도 지원']) }}
-    <div id="content_div">
-        <div id="button_div"></div>
-        <div id="detail_div"></div>
-        <div id="list_div"></div>
+<!-- Modal -->
+<div
+  id="youtube_modal"
+  class="modal fade"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="youtubeModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 id="youtube_modal_title" class="modal-title"></h4>
+        <button
+          class="close"
+          type="button"
+          data-dismiss="modal"
+          aria-label="Close"
+        >
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <input id="modal_type" type="hidden" value="0" />
+        <form id="modal_form">
+          <input id="db_id" name="db_id" type="hidden" value="" />
+          {{ macros.setting_input_textarea('video_urls', 'URL', value='',
+          disabled=True) }} {{ macros.setting_input_text('save_path', '저장
+          폴더', value=arg['save_path'], placeholder='저장 폴더 경로',
+          desc='템플릿 규칙 사용 불가. 폴더명에 템플릿 규칙을 사용하려면 저장
+          폴더엔 상위 폴더 경로를 지정하고 파일명에 하위 경로를 추가해주세요.')
+          }} {{ macros.setting_input_text('filename', '파일명',
+          value=arg['filename'], desc='템플릿 규칙은
+          https://github.com/ytdl-org/youtube-dl/blob/master/README.md#output-template
+          참고') }} {{ macros.setting_select('format', '동영상 포맷',
+          arg['preset_list'], col='4') }} {{
+          macros.setting_checkbox('convert_mp3', 'mp3 변환', value='False') }}
+          {{ macros.setting_checkbox('sub', '자막 다운로드', value='False',
+          desc='자막도 함께 다운로드') }}
+          <div id="subtitle_div" class="collapse">
+            {{ macros.setting_input_text('subtitle', '', value='ko', desc='두
+            자리 국가 코드. 콤마(,)를 구분자로 여러 개 지정 가능') }}
+          </div>
+          {{ macros.setting_checkbox('daterange', '날짜 지정', value='False',
+          desc='지정한 날짜 이후에 업로드된 동영상만 다운로드') }}
+          <div id="daterange_div" class="collapse">
+            {{ macros.setting_input_text('date_after', '',
+            value=arg['date_after'], placeholder='YYYY-MM-DD', type='date') }}
+          </div>
+          {{ macros.setting_checkbox('playlistreverse', '역순으로 다운로드',
+          value='False') }}
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button
+          id="youtube_modal_save_btn"
+          class="btn btn-primary"
+          type="button"
+        >
+          추가
+        </button>
+        <button class="btn btn-secondary" type="button" data-dismiss="modal">
+          닫기
+        </button>
+      </div>
     </div>
+  </div>
+</div>
 
-    <!-- Modal -->
-    <div id="youtube_modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="youtubeModalLabel"
-         aria-hidden="true">
-        <div class="modal-dialog modal-lg" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 id="youtube_modal_title" class="modal-title"></h4>
-                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <input id="modal_type" type="hidden" value="0">
-                    <form id="modal_form">
-                        <input id="db_id" name="db_id" type="hidden" value="">
-                        {{ macros.setting_input_textarea('video_urls', 'URL', value='', disabled=True) }}
-                        {{ macros.setting_input_text('save_path', '저장 폴더', value=arg['save_path'], placeholder='저장 폴더 경로', desc='템플릿 규칙 사용 불가. 폴더명에 템플릿 규칙을 사용하려면 저장 폴더엔 상위 폴더 경로를 지정하고 파일명에 하위 경로를 추가해주세요.') }}
-                        {{ macros.setting_input_text('filename', '파일명', value=arg['filename'], desc='템플릿 규칙은 https://github.com/ytdl-org/youtube-dl/blob/master/README.md#output-template 참고') }}
-                        {{ macros.setting_select('format', '동영상 포맷', arg['preset_list'], col='4') }}
-                        {{ macros.setting_checkbox('convert_mp3', 'mp3 변환', value='False') }}
-                        {{ macros.setting_checkbox('sub', '자막 다운로드', value='False', desc='자막도 함께 다운로드') }}
-                        <div id="subtitle_div" class="collapse">
-                            {{ macros.setting_input_text('subtitle', '', value='ko', desc='두 자리 국가 코드. 콤마(,)를 구분자로 여러 개 지정 가능') }}
-                        </div>
-                        {{ macros.setting_checkbox('daterange', '날짜 지정', value='False', desc='지정한 날짜 이후에 업로드된 동영상만 다운로드') }}
-                        <div id="daterange_div" class="collapse">
-                            {{ macros.setting_input_text('date_after', '', value=arg['date_after'], placeholder='YYYY-MM-DD', type='date') }}
-                        </div>
-                        {{ macros.setting_checkbox('playlistreverse', '역순으로 다운로드', value='False') }}
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button id="youtube_modal_save_btn" class="btn btn-primary" type="button">추가</button>
-                    <button class="btn btn-secondary" type="button" data-dismiss="modal">닫기</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        "use strict";
-        const package_name = '{{ arg["package_name"] }}';
-    </script>
-    <script src="{{ url_for('.static', filename='%s.js' % arg['template_name']) }}"></script>
+<script>
+  'use strict';
+  const package_name = '{{ arg["package_name"] }}';
+</script>
+<script src="{{ url_for('.static', filename='%s.js' % arg['template_name']) }}"></script>
 
 {% endblock %}
