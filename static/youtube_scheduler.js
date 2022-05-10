@@ -41,7 +41,7 @@
         return ret;
       })
       .catch(() => {
-        notify('실패하였습니다.', 'danger');
+        notify('요청 실패', 'danger');
       })
       .finally(() => {
         if (loading) {

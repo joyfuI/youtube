@@ -35,6 +35,10 @@ cookiefile 추출 방법은 [여기](https://github.com/ytdl-org/youtube-dl#how-
 
 ## Changelog
 
+v2.1.1
+
+- yt-dlp 일 때 플레이리스트 분석 시 링크가 잘못되는 문제 수정
+
 v2.1.0
 
 - 설정에 cookiefile 경로 지정 추가

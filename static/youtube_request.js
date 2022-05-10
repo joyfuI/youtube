@@ -37,7 +37,7 @@
         return ret;
       })
       .catch(() => {
-        notify('실패하였습니다.', 'danger');
+        notify('요청 실패', 'danger');
       })
       .finally(() => {
         if (loading) {
@@ -200,20 +200,20 @@
   };
 
   const make_item_youtube = (data, index) => {
+    const url = data.url.startsWith('http')
+      ? data.url
+      : `https://www.youtube.com/watch?v=${data.url}`;
     let str = m_row_start(0);
     str += m_col(1, index);
     str += m_col(
       2,
       `<img class="img-fluid" src="https://i.ytimg.com/vi/${data.id}/hqdefault.jpg" alt="${data.title}">`
     );
-    str += m_col(
-      6,
-      `<a href="https://www.youtube.com/watch?v=${data.url}" target="_blank">${data.title}</a>`
-    );
+    str += m_col(6, `<a href="${url}" target="_blank">${data.title}</a>`);
 
     let tmp = '<div class="form-inline">';
-    tmp += `<input class="youtube-list" type="checkbox" data-toggle="toggle" data-on="선 택" data-off="-" data-onstyle="success" data-offstyle="danger" data-size="small" data-url="https://www.youtube.com/watch?v=${data.url}" checked>&nbsp;&nbsp;&nbsp;&nbsp;`;
-    tmp += make_button_download(`https://www.youtube.com/watch?v=${data.url}`);
+    tmp += `<input class="youtube-list" type="checkbox" data-toggle="toggle" data-on="선 택" data-off="-" data-onstyle="success" data-offstyle="danger" data-size="small" data-url="${url}" checked>&nbsp;&nbsp;&nbsp;&nbsp;`;
+    tmp += make_button_download(`${url}`);
     tmp += '</div>';
     str += m_col(3, tmp, 'right');
 
@@ -241,49 +241,45 @@
       notify('URL을 입력하세요.', 'warning');
       return;
     }
-    post_ajax('/analysis', { url: url.value })
-      .then(({ data }) => {
-        if (!data) {
-          return;
-        }
-        button_div.innerHTML = '';
-        detail_div.innerHTML = '';
-        list_div.innerHTML = '';
-        const info_dict = data.info_dict;
-        const type = check_type(info_dict);
-        if (type === 'playlist') {
-          // 플레이리스트 주소
-          button_div.innerHTML = make_button_scheduler(info_dict.webpage_url);
-          detail_div.innerHTML = make_info(info_dict);
-          let str = '';
-          let index = 0;
-          for (const entry of info_dict.entries) {
-            if (info_dict.extractor_key === 'YoutubeTab') {
-              str += make_item_youtube(entry, ++index);
-            } else {
-              str += make_item(entry, ++index);
-            }
+    post_ajax('/analysis', { url: url.value }).then(({ data }) => {
+      if (!data) {
+        return;
+      }
+      button_div.innerHTML = '';
+      detail_div.innerHTML = '';
+      list_div.innerHTML = '';
+      const info_dict = data.info_dict;
+      const type = check_type(info_dict);
+      if (type === 'playlist') {
+        // 플레이리스트 주소
+        button_div.innerHTML = make_button_scheduler(info_dict.webpage_url);
+        detail_div.innerHTML = make_info(info_dict);
+        let str = '';
+        let index = 0;
+        for (const entry of info_dict.entries) {
+          if (info_dict.extractor_key === 'YoutubeTab') {
+            str += make_item_youtube(entry, ++index);
+          } else {
+            str += make_item(entry, ++index);
           }
-          list_div.innerHTML = str;
-          $('input.youtube-list').bootstrapToggle();
-        } else if (type === 'video') {
-          // 동영상 주소
-          button_div.innerHTML = make_button_download(info_dict.webpage_url);
-          detail_div.innerHTML = make_info(info_dict);
-        } else if (type === 'channel') {
-          // 유튜브 채널 주소
-          detail_div.innerHTML = make_info(info_dict);
-          let str = '';
-          let index = 0;
-          for (const entry of info_dict.entries) {
-            str += make_item_channel(entry, ++index);
-          }
-          list_div.innerHTML = str;
         }
-      })
-      .catch(() => {
-        notify('요청 실패', 'danger');
-      });
+        list_div.innerHTML = str;
+        $('input.youtube-list').bootstrapToggle();
+      } else if (type === 'video') {
+        // 동영상 주소
+        button_div.innerHTML = make_button_download(info_dict.webpage_url);
+        detail_div.innerHTML = make_info(info_dict);
+      } else if (type === 'channel') {
+        // 유튜브 채널 주소
+        detail_div.innerHTML = make_info(info_dict);
+        let str = '';
+        let index = 0;
+        for (const entry of info_dict.entries) {
+          str += make_item_channel(entry, ++index);
+        }
+        list_div.innerHTML = str;
+      }
+    });
   };
 
   analysis_btn.addEventListener('click', click_analysis_btn);
