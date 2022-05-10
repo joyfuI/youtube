@@ -105,55 +105,61 @@ def first_menu(sub):
 @blueprint.route("/ajax/<sub>", methods=["POST"])
 @login_required
 def ajax(sub):
-    logger.debug("AJAX %s %s", package_name, sub)
     try:
+        logger.debug("AJAX: %s, %s", sub, request.values)
+        ret = {"ret": "success"}
+
         # 공통 요청
         if sub == "setting_save":
             ret = ModelSetting.setting_save(request)
-            return jsonify(ret)
 
         elif sub == "scheduler":
-            go = request.form["scheduler"]
-            logger.debug("scheduler:%s", go)
-            if go == "true":
+            ret = request.form["scheduler"]
+            logger.debug("scheduler:%s", ret)
+            if ret == "true":
                 Logic.scheduler_start()
             else:
                 Logic.scheduler_stop()
-            return jsonify(go)
 
         elif sub == "one_execute":
             ret = Logic.one_execute()
-            return jsonify(ret)
 
         elif sub == "reset_db":
             ret = Logic.reset_db()
-            return jsonify(ret)
 
         # UI 요청
         elif sub == "analysis":
             url = request.form["url"]
-            ret = LogicNormal.analysis(url)
-            return jsonify(ret)
+            data = LogicNormal.analysis(url)
+            if data["errorCode"] == 0:
+                ret["data"] = data
+            else:
+                ret["ret"] = "warning"
+                ret["msg"] = "분석 실패"
 
         elif sub == "add_download":
-            ret = LogicNormal.download(request.form)
-            return jsonify(ret)
+            count = LogicNormal.download(request.form)
+            ret["msg"] = f"{count}개를 큐에 추가하였습니다."
 
         elif sub == "list_scheduler":
-            ret = LogicNormal.get_scheduler()
-            return jsonify(ret)
+            ret["data"] = LogicNormal.get_scheduler()
 
         elif sub == "add_scheduler":
-            ret = LogicNormal.add_scheduler(request.form)
-            return jsonify(ret)
+            if LogicNormal.add_scheduler(request.form):
+                ret["msg"] = "스케줄을 저장하였습니다."
+            else:
+                ret["ret"] = "warning"
+                ret["msg"] = "플레이리스트가 아닙니다."
 
         elif sub == "del_scheduler":
-            ret = LogicNormal.del_scheduler(request.form["id"])
-            return jsonify(ret)
+            LogicNormal.del_scheduler(request.form["id"])
+            ret["msg"] = "삭제하였습니다."
 
         elif sub == "del_archive":
             LogicNormal.del_archive(request.form["id"])
-            return jsonify([])
+            ret["msg"] = "삭제하였습니다."
+
+        return jsonify(ret)
     except Exception as e:
         logger.error("Exception:%s", e)
         logger.error(traceback.format_exc())

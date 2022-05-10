@@ -20,16 +20,91 @@
 
   let current_data;
 
-  // 리스트 로딩
-  fetch(`/${package_name}/ajax/list_scheduler`, {
-    method: 'POST',
-    cache: 'no-cache',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-    },
-  })
-    .then((response) => response.json())
-    .then(make_list);
+  const post_ajax = (url, data) => {
+    const loading = document.getElementById('loading');
+    if (loading) {
+      loading.style.display = 'block';
+    }
+    return fetch(`/${package_name}/ajax${url}`, {
+      method: 'POST',
+      cache: 'no-cache',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+      },
+      body: new URLSearchParams(data),
+    })
+      .then((response) => response.json())
+      .then((ret) => {
+        if (ret.msg) {
+          notify(ret.msg, ret.ret);
+        }
+        return ret;
+      })
+      .catch(() => {
+        notify('실패하였습니다.', 'danger');
+      })
+      .finally(() => {
+        if (loading) {
+          loading.style.display = 'none';
+        }
+      });
+  };
+
+  const make_item = (data) => {
+    let str = m_row_start();
+    let tmp = `<strong><a href="${data.url}" target="_blank">${data.title}</a></strong><br><br>`;
+    tmp += `<a href="${data.uploader_url}" target="_blank">${data.uploader}</a>`;
+    str += m_col(4, tmp);
+
+    tmp = m_row_start(0);
+    tmp += m_col2(3, '저장 경로', 'right');
+    tmp += m_col2(9, data.path);
+    tmp += m_row_end();
+    tmp += m_row_start(0);
+    tmp += m_col2(3, '동영상 포맷', 'right');
+    tmp += m_col2(9, data.format);
+    tmp += m_row_end();
+    tmp += m_row_start(0);
+    tmp += m_col2(3, 'mp3로 변환', 'right');
+    tmp += m_col2(9, data.convert_mp3 ? '사용' : '사용안함');
+    tmp += m_row_end();
+    str += m_col(4, tmp);
+
+    tmp = `동영상 개수: ${data.count}<br>`;
+    tmp += `마지막 실행: ${data.last_time}<br><br>`;
+    let tmp2 = `<button class="btn btn-sm btn-outline-success youtube-edit" data-id="${data.id}">스케줄 수정</button>`;
+    tmp2 += `<button class="btn btn-sm btn-outline-success youtube-del" data-id="${data.id}">스케줄 삭제</button>`;
+    tmp2 += `<button class="btn btn-sm btn-outline-success youtube-archive" data-id="${data.id}">Archive 삭제</button>`;
+    tmp += m_button_group(tmp2);
+    str += m_col(4, tmp);
+
+    str += m_row_end();
+    str += m_hr(0);
+    return str;
+  };
+
+  const reload_list = async () => {
+    const { data } = await post_ajax('/list_scheduler');
+    current_data = {};
+    list_div.innerHTML = data
+      .map((item) => {
+        current_data[item.id] = item;
+        return make_item(item);
+      })
+      .join('\n');
+  };
+
+  // 스케줄 삭제
+  const del_scheduler = (event) => {
+    event.preventDefault();
+    post_ajax('/del_scheduler', { id: event.data }).then(reload_list);
+  };
+
+  // Archive 삭제
+  const del_archive = (event) => {
+    event.preventDefault();
+    post_ajax('/del_archive', { id: event.data });
+  };
 
   // 스케줄 추가
   add_btn.addEventListener('click', (event) => {
@@ -125,112 +200,9 @@
       notify('URL을 입력하세요.', 'warning');
       return;
     }
-    fetch(`/${package_name}/ajax/add_scheduler`, {
-      method: 'POST',
-      cache: 'no-cache',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-      },
-      body: get_formdata('#modal_form'),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        if (data === null) {
-          notify('플레이리스트가 아닙니다.', 'warning');
-          return;
-        }
-        make_list(data);
-        notify('스케줄을 저장하였습니다.', 'success');
-      })
-      .catch(() => {
-        notify('실패하였습니다.', 'danger');
-      });
+    post_ajax('/add_scheduler', get_formdata('#modal_form')).then(reload_list);
   });
 
-  function make_list(data) {
-    current_data = {};
-    let str = '';
-    for (const item of data) {
-      current_data[item.id] = item;
-      str += make_item(item);
-    }
-    list_div.innerHTML = str;
-  }
-
-  function make_item(data) {
-    let str = m_row_start();
-    let tmp = `<strong><a href="${data.url}" target="_blank">${data.title}</a></strong><br><br>`;
-    tmp += `<a href="${data.uploader_url}" target="_blank">${data.uploader}</a>`;
-    str += m_col(4, tmp);
-
-    tmp = m_row_start(0);
-    tmp += m_col2(3, '저장 경로', 'right');
-    tmp += m_col2(9, data.path);
-    tmp += m_row_end();
-    tmp += m_row_start(0);
-    tmp += m_col2(3, '동영상 포맷', 'right');
-    tmp += m_col2(9, data.format);
-    tmp += m_row_end();
-    tmp += m_row_start(0);
-    tmp += m_col2(3, 'mp3로 변환', 'right');
-    tmp += m_col2(9, data.convert_mp3 ? '사용' : '사용안함');
-    tmp += m_row_end();
-    str += m_col(4, tmp);
-
-    tmp = `동영상 개수: ${data.count}<br>`;
-    tmp += `마지막 실행: ${data.last_time}<br><br>`;
-    let tmp2 = `<button class="btn btn-sm btn-outline-success youtube-edit" data-id="${data.id}">스케줄 수정</button>`;
-    tmp2 += `<button class="btn btn-sm btn-outline-success youtube-del" data-id="${data.id}">스케줄 삭제</button>`;
-    tmp2 += `<button class="btn btn-sm btn-outline-success youtube-archive" data-id="${data.id}">Archive 삭제</button>`;
-    tmp += m_button_group(tmp2);
-    str += m_col(4, tmp);
-
-    str += m_row_end();
-    str += m_hr(0);
-    return str;
-  }
-
-  // 스케줄 삭제
-  function del_scheduler(event) {
-    event.preventDefault();
-    fetch(`/${package_name}/ajax/del_scheduler`, {
-      method: 'POST',
-      cache: 'no-cache',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-      },
-      body: new URLSearchParams({
-        id: event.data,
-      }),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        make_list(data);
-        notify('삭제하였습니다.', 'success');
-      })
-      .catch(() => {
-        notify('실패하였습니다.', 'danger');
-      });
-  }
-
-  // Archive 삭제
-  function del_archive(event) {
-    event.preventDefault();
-    fetch(`/${package_name}/ajax/del_archive`, {
-      method: 'POST',
-      cache: 'no-cache',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-      },
-      body: new URLSearchParams({
-        id: event.data,
-      }),
-    })
-      .then(() => {
-        notify('삭제하였습니다.', 'success');
-      })
-      .catch(() => {
-        notify('실패하였습니다.', 'danger');
-      });
-  }
+  // 리스트 로딩
+  reload_list();
 })();

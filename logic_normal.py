@@ -170,7 +170,7 @@ class LogicNormal(object):
         else:
             info_dict = APIYoutubeDL.info_dict(package_name, form["url"])["info_dict"]
             if info_dict is None or info_dict.get("_type") != "playlist":
-                return None
+                return False
             data = {
                 "webpage_url": info_dict["webpage_url"],
                 "title": info_dict["title"],
@@ -194,7 +194,7 @@ class LogicNormal(object):
                 else False,
             }
             ModelScheduler.create(data)
-        return LogicNormal.get_scheduler()
+        return True
 
     @staticmethod
     def del_scheduler(db_id):
