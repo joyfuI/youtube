@@ -81,6 +81,6 @@ value=arg['url'], desc=['유튜브 동영상 또는 채널, 플레이리스트 �
   'use strict';
   const package_name = '{{ arg["package_name"] }}';
 </script>
-<script src="{{ url_for('.static', filename='%s.js' % arg['template_name']) }}"></script>
+<script src="{{ url_for('.static', filename='%s.js' % arg['template_name']) }}?ver={{ arg['package_version'] }}"></script>
 
 {% endblock %}
