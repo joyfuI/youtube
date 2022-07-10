@@ -1,25 +1,6 @@
 'use strict';
 
 (() => {
-  const add_btn = document.getElementById('add_btn');
-  const list_div = document.getElementById('list_div');
-  const modal_form = document.getElementById('modal_form');
-  const db_id = document.getElementById('db_id');
-  const url = document.getElementById('url');
-  const save_path = document.getElementById('save_path');
-  const filename = document.getElementById('filename');
-  const format = document.getElementById('format');
-  const convert_mp3 = document.getElementById('convert_mp3');
-  const subtitle = document.getElementById('subtitle');
-  const date_after = document.getElementById('date_after');
-  const schedule_modal_save_btn = document.getElementById(
-    'schedule_modal_save_btn'
-  );
-  const confirm_title = document.getElementById('confirm_title');
-  const confirm_body = document.getElementById('confirm_body');
-
-  let current_data;
-
   const post_ajax = (url, data) => {
     const loading = document.getElementById('loading');
     if (loading) {
@@ -49,6 +30,25 @@
         }
       });
   };
+
+  const add_btn = document.getElementById('add_btn');
+  const list_div = document.getElementById('list_div');
+  const modal_form = document.getElementById('modal_form');
+  const db_id = document.getElementById('db_id');
+  const url = document.getElementById('url');
+  const save_path = document.getElementById('save_path');
+  const filename = document.getElementById('filename');
+  const format = document.getElementById('format');
+  const convert_mp3 = document.getElementById('convert_mp3');
+  const subtitle = document.getElementById('subtitle');
+  const date_after = document.getElementById('date_after');
+  const schedule_modal_save_btn = document.getElementById(
+    'schedule_modal_save_btn'
+  );
+  const confirm_title = document.getElementById('confirm_title');
+  const confirm_body = document.getElementById('confirm_body');
+
+  let current_data;
 
   const make_item = (data) => {
     let str = m_row_start();

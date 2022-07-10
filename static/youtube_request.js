@@ -1,21 +1,6 @@
 'use strict';
 
 (() => {
-  const url = document.getElementById('url');
-  const analysis_btn = document.getElementById('analysis_btn');
-  const content_div = document.getElementById('content_div');
-  const button_div = document.getElementById('button_div');
-  const detail_div = document.getElementById('detail_div');
-  const list_div = document.getElementById('list_div');
-  const youtube_modal_title = document.getElementById('youtube_modal_title');
-  const modal_type = document.getElementById('modal_type');
-  const video_urls = document.getElementById('video_urls');
-  const format = document.getElementById('format');
-  const convert_mp3 = document.getElementById('convert_mp3');
-  const youtube_modal_save_btn = document.getElementById(
-    'youtube_modal_save_btn'
-  );
-
   const post_ajax = (url, data) => {
     const loading = document.getElementById('loading');
     if (loading) {
@@ -45,6 +30,21 @@
         }
       });
   };
+
+  const url = document.getElementById('url');
+  const analysis_btn = document.getElementById('analysis_btn');
+  const content_div = document.getElementById('content_div');
+  const button_div = document.getElementById('button_div');
+  const detail_div = document.getElementById('detail_div');
+  const list_div = document.getElementById('list_div');
+  const youtube_modal_title = document.getElementById('youtube_modal_title');
+  const modal_type = document.getElementById('modal_type');
+  const video_urls = document.getElementById('video_urls');
+  const format = document.getElementById('format');
+  const convert_mp3 = document.getElementById('convert_mp3');
+  const youtube_modal_save_btn = document.getElementById(
+    'youtube_modal_save_btn'
+  );
 
   const convert_description = (str) => {
     str = str.replace(
